@@ -29,20 +29,14 @@ class ContractService {
     return response as ContractEntity[];
   }
 
-  async signature(imgName: string): Promise<ContractEntity[]> {
-    const encodedImgName = encodeURIComponent(imgName);
-    const response = await FetcherService.get(
-      "/contract/signature?imageName=" + encodedImgName
-    );
-    return response as ContractEntity[];
-  }
-
   async delete(id: string | number): Promise<void> {
     await FetcherService.delete("/contract/" + id);
   }
 
   async getContractByToken(token: string): Promise<ContractEntity> {
-    const response = await FetcherService.get("/contract/get-by-token?token=" + token);
+    // Token encodé : un token contenant `?`/`#`/`&` casserait le query param (audit 🟠)
+    const encodedToken = encodeURIComponent(token);
+    const response = await FetcherService.get("/contract/get-by-token?token=" + encodedToken);
     return response as ContractEntity;
   }
 

@@ -2,7 +2,7 @@ import { createSignal, createEffect, on, Setter } from "solid-js"
 import { mailService } from "../../../services/mail.service"
 import { Button } from "../../buttons/Button"
 import { currentPDFTool } from "../../ContractEditor/PDFEditor"
-import { toSendBlob } from "../../../utils/PDFTool"
+import { toSendBlob, setToSendBlob } from "../../../utils/PDFTool"
 import { LabeledInput } from "../../inputs/LabeledInput"
 import { NotificationService } from "../../../utils/notification.service"
 import { LabeledTextarea } from "../../inputs/LabeledTextarea"
@@ -71,10 +71,24 @@ export function SendContractTo(props: {
         // Empêcher le rechargement de la page
         if (e) { e.preventDefault() }
         if (!validateForm()) { return }
+
+        // F4 : garde AVANT le loading — sans outil PDF prêt, l'ancien `?.` sautait
+        // silencieusement la génération et le blob global pouvait contenir le
+        // PDF d'un envoi précédent.
+        const pdfTool = currentPDFTool();
+        if (!pdfTool?.pdfFile) {
+            NotificationService.push({
+                content: "Le PDF n'est pas encore prêt, réessayez dans un instant",
+                type: "error"
+            })
+            return
+        }
+
         setIsLoading(true)
         try {
-            // Générer le PDF avec les signatures
-            await currentPDFTool()?.downloadModifiedPdfWithStoredSignatures(currentPDFTool()?.pdfFile as File, false)
+            // Générer le PDF avec les signatures — la promesse résout à la fin du
+            // travail réel (reader.onload), pas après l'ouverture du lecture de fichier.
+            await pdfTool.downloadModifiedPdfWithStoredSignatures(pdfTool.pdfFile, false)
         } catch (error) {
             if (import.meta.env.DEV) {
                 console.error("Erreur lors de la génération du PDF:", error);
@@ -83,6 +97,7 @@ export function SendContractTo(props: {
                 content: "Erreur lors de la génération du PDF",
                 type: "error"
             })
+        } finally {
             setIsLoading(false)
         }
     }
@@ -122,6 +137,9 @@ export function SendContractTo(props: {
                     type: "error"
                 })
             } finally {
+                // F4 : purger le blob global après l'envoi — au prochain tentatif,
+                // il ne peut plus contenir le PDF d'un envoi précédent.
+                setToSendBlob(undefined)
                 setIsLoading(false)
             }
         }

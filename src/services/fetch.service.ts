@@ -99,20 +99,20 @@ class Fetcher {
         responseJson = text ? { data: text } : {};
       }
 
-      const okStatusCode = [200, 201, 204];
-
-      if (!okStatusCode.includes(response.status)) {
+      if (!response.ok) {
         // Gérer les erreurs 401 (Token manquant/invalide) - Déconnecter l'utilisateur
         if (response.status === 401 && storeService.proxy.isLogin) {
           // Déconnecter l'utilisateur silencieusement (vide le localStorage)
           authService.logout();
-          // Ne pas lancer d'erreur, juste retourner un objet vide
-          return {};
         }
 
+        // F3 : un 401 est un échec réel — ne plus le masquer en `return {}`
+        // (les services castent le résultat : listes vides silencieuses après perte de session).
         const errorMessage = (responseJson && typeof responseJson === 'object' && 'error' in responseJson && typeof responseJson.error === 'string')
           ? responseJson.error
-          : `Erreur ${response.status}: ${response.statusText}`;
+          : response.status === 401
+            ? "Session expirée ou invalide, veuillez vous reconnecter."
+            : `Erreur ${response.status}: ${response.statusText}`;
         const apiError = ErrorHandlerService.createApiError(
           errorMessage,
           response.status,

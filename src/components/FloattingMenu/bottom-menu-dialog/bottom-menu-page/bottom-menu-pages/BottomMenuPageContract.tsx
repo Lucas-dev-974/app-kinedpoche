@@ -32,43 +32,33 @@ export function BottomMenuPageContract() {
   // }
 
   onMount(async () => {
-    if (loggedIn()) {
-      const contracts = await contractService.list();
-      setContracts(contracts);
-    } else {
-      // const ids = storeService.proxy.contracts?.map(contract => [contract.id, contract.token]) as [[string | number, string]];
-      let idsTokens = []
-      for (const contract of storeService.proxy.contracts!) {
-        idsTokens.push([contract.id, contract.token]);
+    // F3 : les appels serveur peuvent lever (401 après perte de session, réseau)
+    // — pas de unhandled rejection : on garde la liste locale du store en fallback.
+    let serverContracts: ContractEntity[] | undefined;
+    try {
+      if (loggedIn()) {
+        serverContracts = await contractService.list();
+      } else {
+        let idsTokens = []
+        for (const contract of storeService.proxy.contracts!) {
+          idsTokens.push([contract.id, contract.token]);
+        }
+
+        serverContracts = await contractService.listFromIDSToken(idsTokens as [number, string][]);
       }
-
-
-      const contracts = await contractService.listFromIDSToken(idsTokens as [number, string][]);
-      setContracts(contracts);
+    } catch {
+      // Erreur déjà notifiée par le fetcher — liste locale conservée
     }
 
-    // const localContracts = storeService.proxy.contracts;
-    // // Initialiser les contrats avec les données du store
-    // if (localContracts && localContracts.length > 0) {
-    //   const contractsList = localContracts as ContractEntity[];
-    //   setContracts(contractsList);
-    //   setFilteredContracts(contractsList);
-    // }
-
-    // if (loggedIn()) {
-    //   if (localContracts!.length > 0) {
-    //     // await SynchronizeContracts();
-    //     // Mettre à jour après synchronisation
-    //     const updatedContracts = storeService.proxy.contracts as ContractEntity[];
-    //     setContracts(updatedContracts);
-    //     setFilteredContracts(updatedContracts);
-    //   } else {
-    //     const contractsList = await contractService.list();
-    //     storeService.proxy.contracts = contractsList;
-    //     setContracts(contractsList);
-    //     setFilteredContracts(contractsList);
-    //   }
-    // }
+    if (serverContracts) {
+      // Synchroniser le store avec la liste serveur (évite désync local/serveur,
+      // cf. audit : la liste serveur n'était jamais écrite dans le store)
+      storeService.proxy.contracts = serverContracts;
+      setContracts(serverContracts);
+      setFilteredContracts(serverContracts);
+    } else {
+      setContracts((storeService.proxy.contracts ?? []) as ContractEntity[]);
+    }
   });
 
   function openDialogTool_(contract: ContractEntity) {
@@ -88,7 +78,14 @@ export function BottomMenuPageContract() {
     setShowDeleteConfirmation(false);
 
     if (loggedIn()) {
-      await contractService.delete(contract.id);
+      try {
+        await contractService.delete(contract.id);
+      } catch {
+        // Erreur déjà notifiée par le fetcher (401/500, cf. audit 🟠 item 3) :
+        // ne pas retirer la ligne localement — le contrat existe toujours en base.
+        setContractToDelete(null);
+        return;
+      }
       storeService.proxy.contracts = storeService.proxy.contracts?.filter(contract_ => contract_.id !== contract.id);
     } else {
       storeService.proxy.contracts = storeService.proxy.contracts!.filter((contract_: Partial<ContractEntity>) => contract_.id !== contract.id);
