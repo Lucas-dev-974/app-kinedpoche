@@ -106,7 +106,11 @@ export function PDFCanvas() {
             const img = new Image();
             img.onload = () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Ratio conservé, centré (audit signatures (5))
+                const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
+                const width = img.width * scale;
+                const height = img.height * scale;
+                ctx.drawImage(img, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
             };
             img.src = data;
         };
