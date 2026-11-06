@@ -1,4 +1,5 @@
-import { createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
+import { createMutable } from "solid-js/store";
 import { ContractEntity } from "../models/contract.entity";
 import { UserEntity } from "../models/user.entity";
 
@@ -39,43 +40,32 @@ function serializeStore(target: StoreDataType): string {
   return JSON.stringify({ ...target, token: undefined });
 }
 
-// Pendant un effacement, le trap `set` ne doit plus réécrire le localStorage
-// (l'ancien code repersistait le store, token encore valide, à la première
-// affectation de clearUserData).
+// Pendant un effacement, l'effet de persistance ne doit pas écrire les états
+// intermédiaires (l'ancien code repersistait le store, token encore valide, à
+// la première affectation de clearUserData).
 let persistSilenced = false;
 
 class StoreService {
-  public data: StoreDataType = {
+  /**
+   * Store réactif Solid (audit 🟠 "le store n'est pas réactif") : l'ancien
+   * Proxy+localStorage maison ne déclenchait AUCUN re-render — les lectures
+   * `proxy.user` / `proxy.contracts` dans le JSX restaient figées au montage.
+   * `createMutable` garde la syntaxe d'affectation directe ET rend les lectures
+   * trackées ; la persistance est câblée par effets (voir constructeur).
+   */
+  public mutable = createMutable<StoreDataType>({
     isLogin: undefined,
-    contracts: []
-  };
-
-  public proxy = new Proxy(this.data, {
-    get(target, property, receiver) {
-      return Reflect.get(target, property, receiver);
-    },
-    set(target, property, value, receiver) {
-      const oldValue = Reflect.get(target, property, receiver);
-      const toReturn = Reflect.set(target, property, value, receiver);
-
-      if (property === "contracts") {
-        setLocalUpdateEvent(!localeUpdateEvent())
-      }
-
-      // Miroir du JWT de session en sessionStorage (jamais dans le store sérialisé)
-      if (property === "token" && value) {
-        sessionStorage.setItem(SESSION_TOKEN_KEY, String(value));
-      }
-
-      // Ne rien persister pendant un effacement, ni pour une écriture sans
-      // changement (l'isLogin=false du logout ne recrée plus l'entrée `store`
-      // juste après le removeItem).
-      if (!persistSilenced && oldValue !== value) {
-        localStorage.setItem(STORE_KEY, serializeStore(target));
-      }
-      return toReturn;
-    },
+    contracts: [],
   });
+
+  /** Alias rétro-compatibles : même objet réactif que `mutable`. */
+  get data(): StoreDataType {
+    return this.mutable;
+  }
+
+  get proxy(): StoreDataType {
+    return this.mutable;
+  }
 
   constructor() {
     const storeData = this.getStore();
@@ -83,33 +73,53 @@ class StoreService {
 
     if (!storeData) {
       // Aucun store en localStorage : initialiser avec un user défini mais vide
-      this.proxy.user = EMPTY_USER;
-      this.proxy.isLogin = undefined;
-      this.proxy.contracts = [];
-      this.setState();
-      return;
-    }
-
-    // Store persisté sans JWT de session alors que isLogin = true : session
-    // perdue (onglet fermé, navigateur relancé, machine partagée) → purger et
-    // repartir déconnecté au lieu de rester "connecté" sans token.
-    if (storeData.isLogin === true && !sessionToken) {
+      this.mutable.user = EMPTY_USER;
+      this.mutable.isLogin = undefined;
+      this.mutable.contracts = [];
+    } else if (storeData.isLogin === true && !sessionToken) {
+      // Store persisté sans JWT de session alors que isLogin = true : session
+      // perdue (onglet fermé, navigateur relancé, machine partagée) → purger et
+      // repartir déconnecté au lieu de rester "connecté" sans token.
       this.clearUserData();
-      return;
+    } else {
+      for (const key in storeData) {
+        (this.mutable as StoreDataType)[key] = (storeData as Record<string, any>)[key];
+      }
+      // S'assurer que user existe toujours comme clé, même après d'anciennes versions du store
+      if (typeof this.mutable.user === "undefined") {
+        this.mutable.user = EMPTY_USER;
+      }
+      this.mutable.isLogin = storeData.isLogin;
+
+      if (sessionToken) {
+        this.mutable.token = sessionToken;
+      }
     }
 
-    for (const key in storeData) {
-      this.proxy[key] = storeData[key];
-    }
-    // S'assurer que user existe toujours comme clé, même après d’anciennes versions du store
-    if (typeof this.proxy.user === "undefined") {
-      this.proxy.user = EMPTY_USER;
-    }
-    this.proxy.isLogin = storeData.isLogin;
+    // Persistance : l'effet sérialise TOUT le store (=> suivi réactif de chaque
+    // clé) et réécrit le JSON à tout changement réel. serializeStore exclut le
+    // token de session, jamais persisté en clair.
+    createEffect(() => {
+      const snapshot = serializeStore(this.mutable);
+      if (!persistSilenced) {
+        localStorage.setItem(STORE_KEY, snapshot);
+      }
+    });
 
-    if (sessionToken) {
-      this.proxy.token = sessionToken;
-    }
+    // Miroir du JWT de session en sessionStorage (jamais dans le JSON persisté)
+    createEffect(() => {
+      const token = this.mutable.token;
+      if (token) {
+        sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+      }
+    });
+
+    // L'event historique des consommateurs suit le contracts réactif
+    // (l'ancien trap `set` le déclenchait à chaque affectation).
+    createEffect(() => {
+      this.mutable.contracts; // lecture trackée : l'effet re-tourne à chaque changement
+      setLocalUpdateEvent(!localeUpdateEvent());
+    });
   }
 
   getStore(): StoreDataType | null {
@@ -123,30 +133,30 @@ class StoreService {
   }
 
   setState() {
-    localStorage.setItem(STORE_KEY, serializeStore(this.data));
+    localStorage.setItem(STORE_KEY, serializeStore(this.mutable));
   }
 
   /**
    * Vide toutes les données utilisateur du localStorage et réinitialise le store
    */
   clearUserData() {
-    // F2 : neutraliser SANS re-persister à chaque affectation — les mutations
-    // passent par le proxy ; rien n'est sérialisé tant que `persistSilenced`.
+    // (1) Le JWT de session quitte le disque IMMÉDIATEMENT — un crash pendant
+    // la neutralisation ne laisse plus d'entrée avec token en localStorage.
+    localStorage.removeItem(STORE_KEY);
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+
+    // (2) Neutraliser en mémoire sans persister les états intermédiaires.
     persistSilenced = true;
     try {
-      this.proxy.isLogin = false;
-      this.proxy.token = "";
-      this.proxy.user = EMPTY_USER;
-      this.proxy.contracts = [];
+      this.mutable.token = "";
+      this.mutable.isLogin = false;
+      this.mutable.user = EMPTY_USER;
+      this.mutable.contracts = [];
     } finally {
       persistSilenced = false;
     }
-
-    // L'entrée store est retirée APRÈS neutralisation ; les écritures sans
-    // changement qui suivent (setGlobalIsLogin(false) dans logout) ne la
-    // recréent pas.
-    localStorage.removeItem(STORE_KEY);
-    sessionStorage.removeItem(SESSION_TOKEN_KEY);
+    // Pas d'écriture immédiate : l'entrée `store` se recréera seule à la
+    // prochaine vraie écriture (login, contrats invités…).
   }
 }
 

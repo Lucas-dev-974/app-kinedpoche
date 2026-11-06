@@ -27,7 +27,7 @@ class AuthService {
   }
 
   public setGlobalIsLogin(isLogin: boolean) {
-    storeService.proxy.isLogin = isLogin;
+    // Écrit le store réactif (const.data dérive loggedIn du store)
     setLoggedIn(isLogin);
   }
 
