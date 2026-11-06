@@ -37,6 +37,21 @@ Vérification : `tsc --noEmit` — **21 erreurs avant = 21 après** (0 nouvelle 
 | 🟠 remount BottomMenuPageContract à chaque bascule | ⏳ **non fait** | réstructure UI (garder l'état entre toggles du Switch/Match) |
 | 🟡 restants | ✅ **purge faite** (`dd6e1c0`) | imports fantômes (chaîne Announcements **supprimée**), TS6133 nettoyés (tsc 21 → **0 erreur**), `Number()` non validé → NaN jamais envoyé, 0 % désormais valide, compteur de notification monotone, `listFromIDSToken` en tableau direct (API accepte les 2 formes), fusion login sur `EMPTY_USER` (TS2322), AbortController couvre `json()`/`text()`, TypeError réseau matché par classe, `navigateFn` nettoyé au démontage, validation email/birthday avant écriture, sources uniques `DATE_FIELD_IDS`/A4, `getDimensions` appelé 1 fois (plus de re-téléchargement page 1 × pages), CI : deploy FTP sur push main seulement, nginx : nosniff + X-Frame-Options + Referrer-Policy (CSP stricte/HSTS volontairement reportés) |
 
+## ✅ Statut des correctifs — session QA 06/11/2026 (après-midi)
+
+Parcours cliqué en navigateur contre la stack docker locale (api:3001, web:5173), hooks d'erreurs console actifs. **tsc : 0 erreur** · `vite build` ✓ à chaque fix.
+
+| # | Constaté en QA | Cause | Fix |
+|---|---|---|---|
+| Q1 | `RangeError: Maximum call stack size exceeded` au chargement | l'effet du store lit `localeUpdateEvent()` qu'il écrit lui-même → self-update infini | `untrack(localeUpdateEvent)` dans l'effet de flip (`3b34061` corrigé, non committé tel quel) |
+| Q2 | Re-sauvegarde d'un contrat → `[5, 5]` dans le store ; supprimer une ligne purgait **toutes** les lignes du même id | après la 1ʳᵉ sauvegarde `contractData` porte id+token → le 2ᵉ save POST l'id+token → l'API (patch C1) délègue vers l'update et renvoie la même entité, que le front re-ajoutait | CTAPDFViewer : `alreadySaved` = id ou token présent → branche update + remplacement dans le store par id |
+| Q3 | Boutons "Télécharger/Sauvegarder le PDF" sans texte | préexistant : `Button` rendait `icon ? icon : text` — le texte était perdu quand une icône passait | `Button` rend icon + `<span>` texte |
+| Q4 | Garde anti-double-clic | vérifié : `disabled` posé immédiatement après le 1ᵉʳ clic ; les `.click()` synthétiques du QA bypassaient le disabled, un clic utilisateur réel ne le |
+
+**Parcours validés** : boot sans erreur console · dialog Informations (ouvre, reste ouvert, sauvegarde, fermeture overlay) · création contrat · re-save = update (1 seul id) · liste contrats (invités, `list-ids` au format tableau direct accepté par l'API) · suppression ciblée `[6,7] → [7]` · persistance au rechargement · garde boot : `isLogin=true` sans token de session → purge et retour déconnecté (F2).
+
+**Non testé (pas de credentials)** : login/logout réels avec JWT, envoi mail (SMTP non configuré → 503 attendu et catché), éditeur de signatures au crayon, pagination manuelle.
+
 ## Synthèse
 
 | | 🔴 | 🟠 | 🟡 |

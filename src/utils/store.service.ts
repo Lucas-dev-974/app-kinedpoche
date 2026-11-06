@@ -1,4 +1,4 @@
-import { createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal, untrack } from "solid-js";
 import { createMutable } from "solid-js/store";
 import { ContractEntity } from "../models/contract.entity";
 import { UserEntity } from "../models/user.entity";
@@ -116,9 +116,11 @@ class StoreService {
 
     // L'event historique des consommateurs suit le contracts réactif
     // (l'ancien trap `set` le déclenchait à chaque affectation).
+    // untrack IMPORTANT : lire `localeUpdateEvent` dans CET effet le référencerait
+    // comme dépendance → self-update infini (RangeError constaté au QA).
     createEffect(() => {
       this.mutable.contracts; // lecture trackée : l'effet re-tourne à chaque changement
-      setLocalUpdateEvent(!localeUpdateEvent());
+      setLocalUpdateEvent(!untrack(localeUpdateEvent));
     });
   }
 

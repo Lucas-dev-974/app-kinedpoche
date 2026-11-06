@@ -22,12 +22,18 @@ export function CTAPDFViewer() {
 
         setIsSaving(true);
         try {
-            const contractFromPDF: Partial<ContractEntity> = pdfTool.getContractData();
+            const contractFromPDF: Partial<ContractEntity> = { ...pdfTool.getContractData() };
 
-            if (!loadContract()) {
+            // QA 06/11 : après une 1ʳᵉ sauvegarde, contractData porte id+token —
+            // re-sauvegarder doit METTRE À JOUR ce contrat (l'API délègue
+            // id+token vers l'update, cf. patch C1) au lieu de re-ajouter une
+            // entrée au store (le bug créait des doublons [5,5] et la
+            // suppression d'une ligne purgait toutes les lignes du même id).
+            const alreadySaved = !!contractFromPDF.id || !!contractFromPDF.token;
+            if (!loadContract() && !alreadySaved) {
                 const contract = await contractService.createContract(contractFromPDF);
                 pdfTool.setContractData(contract);
-                storeService.proxy.contracts = [...storeService.proxy.contracts!, contract]
+                storeService.proxy.contracts = [...(storeService.proxy.contracts ?? []), contract]
                 NotificationService.push({
                     content: "Contrat sauvegarder",
                     type: "info",

@@ -53,7 +53,8 @@ export function Button(props: ButtonProps) {
       style={style()}
     >
 
-      {props.icon ? props.icon : props.text}
+      {(props.icon ? props.icon : null)}
+      <span class={props.icon ? "ml-2" : ""}>{props.text}</span>
     </button>
   );
 }
