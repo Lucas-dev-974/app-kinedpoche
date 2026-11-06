@@ -7,7 +7,6 @@ export function Home() {
 
       <div class="">
         <HeroSection />
-        {/* <Announcements announcements={announcements} /> */}
       </div>
     </PageWrapper>
   );

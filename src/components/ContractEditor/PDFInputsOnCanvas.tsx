@@ -2,6 +2,7 @@ import { createSignal, onCleanup } from "solid-js"
 import { currentPDFTool } from "./PDFEditor"
 import { PDFFields } from "../../utils/PDFTool";
 import { formatDate } from "../ContractDialog/DropdownContratInformations/ContractInformationsFields";
+import { DATE_FIELD_IDS, A4_PDF_DIMENSIONS } from "../../utils/pdf-field-mapping.config";
 
 export const [canvasInputs, setCanvasInputs] = createSignal<PDFFields[]>([]);
 
@@ -9,8 +10,7 @@ export function PDFInputsOnCanvas() {
     onCleanup(() => setCanvasInputs([]))
 
     function parseDisplayData(fields: PDFFields): string {
-        const dateFields = ["96R", "102R", "122R", "123R", "131R", "138R"]
-        if (dateFields.includes(fields.id)) {
+        if (DATE_FIELD_IDS.has(fields.id)) {
             // formatDate retourne '' pour une date illisible : afficher la valeur
             // brute au lieu de la faire disparaître (audit 🟠)
             return formatDate(fields.value) || (fields.value ?? "")
@@ -62,8 +62,8 @@ export function PDFInputsOnCanvas() {
 
         // Recalculate from PDF coordinates (field.rect contains [x0, y0, x2, y2])
         // This matches the calculation in PDFTool.getPagesFields()
-        const pdfWidth = 595.2; // Standard A4 width in points
-        const pdfHeight = 841.68; // Standard A4 height in points
+        const pdfWidth = A4_PDF_DIMENSIONS.width; // Standard A4 width in points
+        const pdfHeight = A4_PDF_DIMENSIONS.height; // Standard A4 height in points
         const scale = currentCanvasWidth / pdfWidth;
 
         const [x0, y0, x2, y2] = field.rect;

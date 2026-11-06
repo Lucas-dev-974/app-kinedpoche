@@ -7,7 +7,7 @@ import { RenderParameters } from "pdfjs-dist/types/src/display/api";
 import { ContractEntity } from "../models/contract.entity";
 import { Accessor, createSignal } from "solid-js";
 import { loadContract } from "../const.data";
-import { getPDFIdsForField, getContractFieldForPDFId } from "./pdf-field-mapping.config";
+import { DATE_FIELD_IDS, A4_PDF_DIMENSIONS, A4_CANVAS_FALLBACK, getPDFIdsForField, getContractFieldForPDFId } from "./pdf-field-mapping.config";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc as unknown as string;
 
@@ -183,33 +183,33 @@ export class PDFTool {
     const pages = this.pdfDoc!.numPages;
     const formFields = [];
 
-    for (let i = 0; i != pages; i++) {
+    // Dimensions/scale calculés UNE fois : l'ancien code re-téléchargeait la
+    // page 1 pour chaque page (audit 🟡). Hypothèse explicite : pages de
+    // tailles identiques (A4).
+    const dimensions = await this.getDimensions(this.pdfDoc, "pdf-canvas");
+    const scale = dimensions ? dimensions.canvasDisplayWidth / dimensions.pdfWidth : A4_CANVAS_FALLBACK.width / A4_PDF_DIMENSIONS.width;
+
+    for (let i = 0; i < pages; i++) {
       const page = await this.pdfDoc!.getPage(i + 1);
-      const dimensions = await this.getDimensions(this.pdfDoc, "pdf-canvas");
       const annotations = await page.getAnnotations();
 
-      if (dimensions) {
-        const { pdfWidth, canvasDisplayWidth } = dimensions;
-        const scale = canvasDisplayWidth / pdfWidth;
-        const viewport = page.getViewport({ scale });
+      const viewport = page.getViewport({ scale });
 
+      const fields = annotations
+        .filter((annotation) => annotation.subtype === "Widget")
+        .map((annotation) => ({
+          id: annotation.id as string,
+          type: annotation.fieldType as string,
+          name: annotation.fieldName as string,
+          value: annotation.fieldValue || ("" as string),
+          rect: annotation.rect,
+          width: ((annotation.rect[2] - annotation.rect[0]) * scale) as number,
+          height: ((annotation.rect[3] - annotation.rect[1]) * scale) as number,
+          top: (viewport.height - annotation.rect[3] * scale) as number,
+          left: (annotation.rect[0] * scale) as number,
+        }));
 
-        const fields = annotations
-          .filter((annotation) => annotation.subtype === "Widget")
-          .map((annotation) => ({
-            id: annotation.id as string,
-            type: annotation.fieldType as string,
-            name: annotation.fieldName as string,
-            value: annotation.fieldValue || ("" as string),
-            rect: annotation.rect,
-            width: ((annotation.rect[2] - annotation.rect[0]) * scale) as number,
-            height: ((annotation.rect[3] - annotation.rect[1]) * scale) as number,
-            top: (viewport.height - annotation.rect[3] * scale) as number,
-            left: (annotation.rect[0] * scale) as number,
-          }));
-
-        formFields.push({ page: i + 1, fields: fields });
-      }
+      formFields.push({ page: i + 1, fields: fields });
     }
 
     this.PDFInputsFieldsMetadata = [...this.PDFInputsFieldsMetadata, ...formFields];
@@ -244,10 +244,10 @@ export class PDFTool {
       return data
     }
     return {
-      canvasDisplayHeight: 299,
-      canvasDisplayWidth: 598,
-      pdfHeight: 841.68,
-      pdfWidth: 595.2,
+      canvasDisplayHeight: A4_CANVAS_FALLBACK.height,
+      canvasDisplayWidth: A4_CANVAS_FALLBACK.width,
+      pdfHeight: A4_PDF_DIMENSIONS.height,
+      pdfWidth: A4_PDF_DIMENSIONS.width,
     }
   }
 
@@ -518,7 +518,7 @@ export class PDFTool {
 
       // Champs de date (IDs PDF) : ne pas appliquer le formatage aux autres champs
       // (sinon certains nombres comme le numéro d'ordre peuvent être interprétés comme des dates).
-      const dateFieldIds = new Set(["96R", "102R", "122R", "123R", "131R", "138R"]);
+      const dateFieldIds = DATE_FIELD_IDS;
 
       const formatDate_ = (value: string) => {
         try {

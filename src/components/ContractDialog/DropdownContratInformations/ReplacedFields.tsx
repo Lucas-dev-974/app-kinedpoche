@@ -9,7 +9,7 @@ import { UserEntity } from "../../../models/user.entity";
 import storeService from "../../../utils/store.service";
 import { createSignal, Show, onMount } from "solid-js";
 import { formatDateForInput } from "./ContratInformationsDropdowns";
-import { loadContract, loggedIn } from "../../../const.data";
+import { loadContract } from "../../../const.data";
 import { triggerFill, useFillMode } from "./formFillMode";
 
 export interface AccordionFieldsProps {

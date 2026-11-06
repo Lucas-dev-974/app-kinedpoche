@@ -12,7 +12,8 @@ type StoreDataType = {
   user?: UserEntity;
 };
 
-const EMPTY_USER: UserEntity = {
+// Exporté : la fusion login fait la même dérivation de défauts (audit TS2322)
+export const EMPTY_USER: UserEntity = {
   fullname: "",
   email: "",
   orderNumber: 0,

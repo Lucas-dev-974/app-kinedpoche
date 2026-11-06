@@ -1,4 +1,4 @@
-import { Accessor, createEffect, createSignal } from "solid-js";
+import { createEffect, createSignal } from "solid-js";
 
 export type FillMode = "replaced" | "substitute" | null;
 

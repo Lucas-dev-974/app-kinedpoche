@@ -1,4 +1,4 @@
-import { children, onMount, JSXElement } from "solid-js";
+import { children, onMount, onCleanup, JSXElement } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { Navbar } from "../components/navbar/Navbar";
 import { Notification } from "../components/notification/Notification";
@@ -22,6 +22,10 @@ export function PageWrapper(props: PageWrapperProps) {
 
     onMount(async () => {
         setNavigateFunction(navigate);
+
+        // L'utilisateur peut naviguer (démontage) : ne pas garder un navigateFn
+        // global pointant vers un composant mort (audit 🟡)
+        onCleanup(() => setNavigateFunction(null));
 
         const queryParams = new URLSearchParams(window.location.search);
         const token = queryParams.get("signe-back");

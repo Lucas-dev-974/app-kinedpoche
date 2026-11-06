@@ -1,6 +1,6 @@
 import { setLoggedIn } from "../const.data";
 import { UserEntity } from "../models/user.entity";
-import storeService from "../utils/store.service";
+import storeService, { EMPTY_USER } from "../utils/store.service";
 import { FetcherService } from "./fetch.service";
 import { NotificationService } from "../utils/notification.service";
 
@@ -13,14 +13,16 @@ interface AuthResponse {
 // Utilitaire pour la navigation (évite les dépendances circulaires)
 let navigateFn: ((path: string) => void) | null = null;
 
-export function setNavigateFunction(navigate: (path: string) => void) {
+export function setNavigateFunction(navigate: ((path: string) => void) | null) {
   navigateFn = navigate;
 }
 
 class AuthService {
   private setData(response: AuthResponse) {
+    // Partial<UserEntity> fusionné sur les valeurs par défaut : le store attend
+    // un UserEntity complet (TS2322 — les champs absents prennent l'EMPTY_USER)
     storeService.proxy.token = response.token;
-    storeService.proxy.user = response.user;
+    storeService.proxy.user = { ...EMPTY_USER, ...response.user };
     this.setGlobalIsLogin(true);
   }
 

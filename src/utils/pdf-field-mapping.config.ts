@@ -6,6 +6,15 @@ import { ContractEntity } from "../models/contract.entity";
  * et les propriétés de ContractEntity
  */
 
+// IDs des champs de DATE du AcroForm (source unique — dupliqué avant dans
+// PDFTool et PDFInputsOnCanvas, audit 🟡)
+export const DATE_FIELD_IDS = new Set(["96R", "102R", "122R", "123R", "131R", "138R"]);
+
+// Dimensions A4 en points PDF + fallbacks canvas (source unique — 3 copies avant,
+// audit 🟡)
+export const A4_PDF_DIMENSIONS = { width: 595.2, height: 841.68 } as const;
+export const A4_CANVAS_FALLBACK = { width: 598, height: 299 } as const;
+
 export type FieldMapping = {
     contractField: keyof ContractEntity;
     pdfIds: {

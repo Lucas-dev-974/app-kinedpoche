@@ -70,10 +70,12 @@ class Fetcher {
         signal: controller.signal
       });
 
-      clearTimeout(timeoutId);
+      // NB : pas de clearTimeout ici — le signal d'abort doit rester actif
+      // pendant response.json()/text() pour ne pas pendre indéfiniment (audit 🟡)
 
       // Gérer les réponses vides (204 No Content)
       if (response.status === 204) {
+        clearTimeout(timeoutId);
         return {};
       }
 
@@ -98,6 +100,8 @@ class Fetcher {
         const text = await response.text();
         responseJson = text ? { data: text } : {};
       }
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         // Gérer les erreurs 401 (Token manquant/invalide) - Déconnecter l'utilisateur
@@ -136,8 +140,10 @@ class Fetcher {
         throw timeoutError;
       }
 
-      // Gérer les erreurs réseau
-      if (error instanceof TypeError && error.message.includes("fetch")) {
+      // Gérer les erreurs réseau — on matche la CLASSE d'erreur : plusieurs
+      // libellés réseau n'incluent pas "fetch" ("NetworkError when attempting
+      // to fetch resource" sous Firefox, audit 🟡)
+      if (error instanceof TypeError) {
         const networkError = ErrorHandlerService.createNetworkError(
           "Impossible de se connecter au serveur. Vérifiez votre connexion internet.",
           error

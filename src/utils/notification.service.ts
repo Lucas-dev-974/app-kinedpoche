@@ -10,15 +10,14 @@ export const [notifications, setNotifications] = createSignal<
   NotificationType[]
 >([]);
 
+// Compteur monotone module-level : l'ancien `lastId` calculé hors de l'updater
+// donnait le MÊME id à deux push dans le même tick (remove fermait alors la
+// mauvaise notification, audit 🟡).
+let lastNotificationId = 0;
+
 export class NotificationService {
   static push(notifi: Partial<NotificationType>) {
-    const ids = notifications().map((noti) => noti.id);
-    const lastId = ids[ids.length - 1] || 0;
-    let newId = lastId + 1;
-
-    while (ids.includes(newId)) {
-      newId = newId + 1;
-    }
+    const newId = ++lastNotificationId;
 
     setNotifications((prev) => {
       if (!prev) return prev;
@@ -26,7 +25,7 @@ export class NotificationService {
       const newnotif = [
         ...prev,
         {
-          id: newId as number,
+          id: newId,
           ...(notifi as Pick<NotificationType, "content" | "type">),
         } as NotificationType,
       ];

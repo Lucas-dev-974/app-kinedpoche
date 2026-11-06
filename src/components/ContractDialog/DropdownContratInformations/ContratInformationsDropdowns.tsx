@@ -22,7 +22,9 @@ export function ContratInformationsDropdowns() {
   })
 
   return (
-    <DropdownWrapper multiple={true}>
+    // ids explicites : 1=Replacé, 2=Remplaçant, 3=Informations, 4=Signatures
+    // (les DropdownItem font .find(id === N) — l'ordre du tableau n'importe pas)
+    <DropdownWrapper multiple={true} itemsConfig={[{ id: 1, isOpen: false }, { id: 2, isOpen: false }, { id: 3, isOpen: false }, { id: 4, isOpen: false }]}>
       {(toggleItem, items) => (
         <>
           <ContractInformationsFields items={items} toggleItem={toggleItem} />

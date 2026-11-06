@@ -1,17 +1,13 @@
 import { EditContractDialog } from "../../components/ContractDialog/EditContractDialog";
-import { Button } from "../../components/buttons/Button";
 import { Title1 } from "../../components/titles/Title1";
 import { Text } from "../../components/titles/Text";
 import { Show } from "solid-js";
 import { HiOutlineInformationCircle } from 'solid-icons/hi';
-import { useNavigate } from "@solidjs/router";
 import { loggedIn } from "../../const.data";
 import { RegisterInformationsInLocal } from "../../components/RegisterInformationsInLocal/RegisterInformationsInLocal";
 import storeService from "../../utils/store.service";
 
 export function HeroSection() {
-    const navigate = useNavigate();
-
     return (
         <div class="flex flex-col  items-center flex-wrap">
             <Title1

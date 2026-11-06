@@ -1,13 +1,12 @@
-import { currentPDFTool, setCurrentPDFTool } from "../../ContractEditor/PDFEditor";
+import { currentPDFTool } from "../../ContractEditor/PDFEditor";
 import { DorpdownItemType } from "../../Dropdown/DropdownWrapper";
 import { fillWithMyInformationsSubstitute, isFilledWithUserSubstitute, removeMyInformationsSubstitute } from "./SubstituteFields";
 import { fillWithMyInformationsReplaced, isFilledWithUserReplaced, removeMyInformationsReplaced } from "./ReplacedFields";
 import { DropdownItem } from "../../Dropdown/DropdownItem";
 import { LabeledInput } from "../../inputs/LabeledInput";
-import { Button } from "../../buttons/Button";
 import { createSignal, onMount, Show } from "solid-js";
 import { formatDateForInput } from "./ContratInformationsDropdowns";
-import { loadContract, loggedIn } from "../../../const.data";
+import { loadContract } from "../../../const.data";
 import storeService from "../../../utils/store.service";
 import { FitFieldsWithUserData } from "./FitFieldsWithUserData";
 
@@ -58,15 +57,17 @@ export function ContractInformationsFields(props: ContractInformationsFieldsProp
         setEndDate(value);
         break;
       case "percentReturnToSubstitute":
-        const percentReturnToSubstitute = Number(value);
-        setPercentReturnToSubstitute(percentReturnToSubstitute);
+        // Audit 🟡 : Number('abc') = NaN partait vers l'API — champ numérique non
+        // défini plutôt que NaN.
+        const percentValue = Number(value);
+        setPercentReturnToSubstitute(Number.isFinite(percentValue) ? percentValue : undefined);
         break;
       case "percentReturnToSubstituteBeforeDate":
         setPercentReturnToSubstituteBeforeDate(value);
         break;
       case "nonInstallationRadius":
-        const nonInstallationRadius = Number(value);
-        setNonInstallationRadius(nonInstallationRadius);
+        const radiusValue = Number(value);
+        setNonInstallationRadius(Number.isFinite(radiusValue) ? radiusValue : undefined);
         break;
       case "conciliationCDOMK":
         setConciliationCDOMK(value);
@@ -80,27 +81,6 @@ export function ContractInformationsFields(props: ContractInformationsFieldsProp
     }
 
     isValid();
-  }
-
-  function fillWithMyInformations(as: "author,replaced" | "author,substitute") {
-    setCurrentPDFTool((prev) => {
-      if (!prev) return prev
-      prev.contractData = {
-        ...prev.contractData,
-      }
-      return prev
-    })
-
-
-    switch (as) {
-      case "author,replaced":
-        fillWithMyInformationsReplaced();
-        break;
-
-      case "author,substitute":
-        fillWithMyInformationsSubstitute();
-        break;
-    }
   }
 
   onMount(() => {
@@ -120,7 +100,11 @@ export function ContractInformationsFields(props: ContractInformationsFieldsProp
 
 
   function isValid() {
-    if (startDate() && endDate() && percentReturnToSubstitute() && percentReturnToSubstituteBeforeDate() && conciliationCDOMK() && doneAtLocation() && doneAt()) {
+    // Audit 🟡 : 0 est une valeur valide pour un pourcentage/rayon — ne pas le
+    // traiter comme vide (`!== undefined` au lieu du test truthy).
+    if (startDate() && endDate() && percentReturnToSubstitute() !== undefined
+      && percentReturnToSubstituteBeforeDate() && conciliationCDOMK() && doneAtLocation() && doneAt()
+      && nonInstallationRadius() !== undefined) {
       setValid(true);
     } else {
       setValid(false);

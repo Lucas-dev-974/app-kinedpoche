@@ -36,14 +36,37 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
     const [officeAdress, setOfficeAdress] = createSignal<string>(storeService.proxy.user?.officeAdress ?? "");
     const [gender, setGender] = createSignal<GenderEnum>(storeService.proxy.user?.gender ?? GenderEnum.male);
 
+    // Même regex que SendContractTo (audit 🟡)
+    const validateEmail = (email: string): boolean =>
+        /^([^\s@])+@([^\s@])+\.([^\s@])+$/.test(email);
 
     function saveInformations() {
+        // Audit 🟡 : valider AVANT d'écrire — un email invalide ou un birthday
+        // vide sérialisait 'Invalid Date' (null en localStorage) qui se
+        // retrouvait ensuite dans le flux PDF.
+        if (!validateEmail(email())) {
+            NotificationService.push({
+                content: "Format d'email invalide",
+                type: "error",
+            });
+            return;
+        }
+
+        const birthdayDate = birthday() ? new Date(birthday()) : undefined;
+        if (birthdayDate && isNaN(birthdayDate.getTime())) {
+            NotificationService.push({
+                content: "Date de naissance invalide",
+                type: "error",
+            });
+            return;
+        }
+
         const informations: UserEntity = {
             fullname: name(),
             email: email(),
             orderNumber: orderNumber(),
             department: department(),
-            birthday: new Date(birthday()),
+            birthday: birthdayDate ?? new Date(0),
             bornLocation: bornLocation(),
             personalAdress: personalAdress(),
             officeAdress: officeAdress(),

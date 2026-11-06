@@ -1,5 +1,3 @@
-import { createEffect } from "solid-js";
-
 interface RadioButtonsProps {
   name: string;
   legend: string;

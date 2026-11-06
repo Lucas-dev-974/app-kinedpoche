@@ -1,8 +1,7 @@
-import { createEffect, createSignal, Setter } from "solid-js";
+import { createSignal, Setter } from "solid-js";
 import { UserEntity } from "../../models/user.entity";
 import { authService } from "../../services/auth.service";
 import { LabeledInput } from "../../components/inputs/LabeledInput";
-import { LabeledSelect } from "../../components/inputs/LabeledSelect";
 import { TitleForm } from "../../components/titles/TitleForm";
 import { AuthWrapper } from "./AuthWrapper";
 import { Button } from "../../components/buttons/Button";

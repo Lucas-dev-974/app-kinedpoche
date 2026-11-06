@@ -17,9 +17,10 @@ class ContractService {
     return response as ContractEntity[];
   }
 
-  // * TODO update aray for [[id, token], [id, token], ...]
   async listFromIDSToken(idsTokens: [number, string][]): Promise<ContractEntity[]> {
-    const response = await FetcherService.post("/contract/list-ids", { ids: JSON.stringify(idsTokens) });
+    // Tableau direct, plus de chaîne JSON dans un champ JSON — L'API accepte les
+    // deux formes (parsing défensif côté backend, audit 🟡)
+    const response = await FetcherService.post("/contract/list-ids", { ids: idsTokens });
     return response as ContractEntity[];
   }
 
