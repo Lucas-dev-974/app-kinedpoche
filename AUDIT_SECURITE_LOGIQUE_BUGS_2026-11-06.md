@@ -18,6 +18,25 @@ Vérification : `tsc --noEmit` — **21 erreurs avant = 21 après** (0 nouvelle 
 | 🟠 token brut interpolé | ✅ **patché** | `encodeURIComponent` sur le query param de `getContractByToken` |
 | 🟠 / 🟡 restants | ⏳ **non fait** | DialogWrapper (scoping des resets + `closeDialog` figé à 'registerInformations'), PageWrapper (signe-back écrase les contrats + non catché), store non réactif (`createStore`), bouton de déconnexion absent, signatures (pads `destroy()`/ratio/listener resize), pagination `PDFCanvas` codée en dur (6), `getTextField` qui lève (PDFTool:515 → try par champ), `isRendering` sans `finally`, `formatDate` `''` vs `'Invalid Date'`, `listFromIDSToken` double sérialisation, `DropdownWrapper` enfants doublés, purge des imports fantômes 🟡, CSP nginx, CI déploie les PR |
 
+## ✅ Statut des correctifs — passe 🟠/🟡 du 06/11/2026 (suite)
+
+`tsc --noEmit` : 21 → **19 erreurs** (les 2 `pdfHeight` de PDFTool nettoyées au passage) · `vite build` ✓.
+
+| Item audit | Statut | Détails |
+|---|---|---|
+| 🟠 DialogWrapper (resets non scopés + dialog refermé instantanément + doublons) | ✅ **patché** (`a7ca892`) | resets destructifs (loadContrat/PDFTool/signe-back) scopés à `editContract` ; `closeDialog` neutralisé (`'none'`) après traitement — l'instance registerInformations ne ré-exécute plus son reset à chaque changement d'`openDialogs` ; `signeBack`/`setSigneBack` déplacés dans `const.data` (import circulaire PageWrapper↔DialogWrapper supprimé) ; plus de `?` orphelin dans l'URL |
+| 🟠 PageWrapper (branche morte + signe-back écrase + non catché) | ✅ **patché** (`a7ca892`) | comparaison d'objets toujours fausse supprimée ; contrats **fusionnés par id** au lieu de l'écrasement `[contract]` ; `getContractByToken` sous try/catch |
+| 🟠 bouton de déconnexion absent | ✅ **patché** (`a7ca892`) | « Se déconnecter » branché sur `authService.logout()` dans UserMenuDialog |
+| 🟠 `isRendering` sans finally | ✅ **patché** (`e21846b`) | try/finally + garde `pdfDoc` + garde canvas — un render qui échoue ne fige plus la pagination |
+| 🟠 `getTextField` qui lève (pdf-lib) | ✅ **patché** (`e21846b`) | try **par champ** : un champ absent/non-texte saute le champ au lieu d'aboter toute la génération (console.warn en dev) |
+| 🟠 `formatDate` '' (dates illisibles effacées) | ✅ **patché** (`e21846b`) | PDFTool (`formatDate_`) + `parseDisplayData` : la valeur brute est conservée quand formatDate retourne '' |
+| 🟠 pagination = 6 codée en dur + `filter()[0].fields` + `onMount` sans garde | ✅ **patché** (`e21846b`) | `numPages` dynamique (la page des signatures est la **dernière**), `find` + fallback liste vide à la place du `filter()[0]`, gardes outil/canvas dans PDFCanvas et PDFActions |
+| 🟠 chaîne signatures (5 sous-bugs) | ✅ **patché** (`0b2a1ab`) | (1) listener resize retiré via `onCleanup` (démontage ouvert couvert) ; (2) `off()` du pad précédent + `clearRect` à l'ouverture — plus de pads fantômes ni de traits fantômes re-sauvegardables (le canvas survit aux réouvertures, BottomSlideDialog garde ses enfants montés) ; (3) restauration déclenchée par `canvasSized` **après** le resize final + resize no-op à taille inchangée (la signature restaurée n'est plus effacée) ; (4) cleanup avec `undefined` au lieu de `''` (falsy) qui sautait la restauration ; (5) `drawImage` avec ratio préservé, centré (SignatureManager + `drawSig` PDFCanvas) |
+| 🟠 `DropdownWrapper` enfants instanciés 2× | ⏳ **non fait** | refacto : config explicite (ids/titres) au lieu d'introspecter les children |
+| 🟠 store maison non réactif (anti-pattern Solid) | ⏳ **non fait** | gros chantier (`createStore` + suppression de la double source de vérité `proxy` vs signal) |
+| 🟠 remount BottomMenuPageContract à chaque bascule | ⏳ **non fait** | réstructure UI (garder l'état entre toggles du Switch/Match) |
+| 🟡 restants | ⏳ **non fait** | imports fantômes (chaîne Announcements), `Number()` non validé / 0 % bloquant, doublon de listes d'ids date + constantes A4, `getDimensions` re-télécharge la page 1 par page, id de notification en course, auth/fetch divers (`navigateFn` global, AbortController sur json), validation RegisterInformations, `listFromIDSToken` double sérialisation + types, CSP nginx, CI déploie les PR |
+
 ## Synthèse
 
 | | 🔴 | 🟠 | 🟡 |
