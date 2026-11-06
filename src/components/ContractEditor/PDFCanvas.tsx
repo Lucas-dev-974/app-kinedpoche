@@ -2,34 +2,41 @@ import { onMount } from "solid-js";
 import { currentPDFTool } from "./PDFEditor";
 import { PDFInputsOnCanvas, setCanvasInputs } from "./PDFInputsOnCanvas";
 import { PDFActions } from "./PDFActions";
-import { PDFFields } from "../../utils/PDFTool";
 import { signatureManager } from "../ContractDialog/Signatures";
 
 export function PDFCanvas() {
     onMount(async () => {
         const canvas = document.getElementById("pdf-canvas") as HTMLCanvasElement | null;
         if (!canvas) return;
-        await currentPDFTool()!.renderPage(canvas);
+        // Garde : l'outil peut ne pas être prêt au mount (initialisation async)
+        const pdfTool = currentPDFTool();
+        if (!pdfTool) return;
+        await pdfTool.renderPage(canvas);
         updateCanvasInputsFromTool()
     })
 
     async function pagination(page: number) {
-        const canvas = document.getElementById("pdf-canvas") as HTMLCanvasElement
+        const canvas = document.getElementById("pdf-canvas") as HTMLCanvasElement | null
+        if (!canvas) return
+        const pdfTool = currentPDFTool()
+        if (!pdfTool?.numPages) return
 
-        if (page === +1 && currentPDFTool()!.currentPage == 6) {
-            currentPDFTool()!.setCurrentPage(1);
-        } else if (page === -1 && currentPDFTool()!.currentPage == 1) {
-            currentPDFTool()!.setCurrentPage(6);
+        const lastPageNumber = pdfTool.numPages
+        if (page === +1 && pdfTool.currentPage == lastPageNumber) {
+            pdfTool.setCurrentPage(1);
+        } else if (page === -1 && pdfTool.currentPage == 1) {
+            pdfTool.setCurrentPage(lastPageNumber);
         } else {
-            currentPDFTool()!.setCurrentPage(currentPDFTool()!.currentPage + page);
+            pdfTool.setCurrentPage(pdfTool.currentPage + page);
         }
 
-        await currentPDFTool()!.renderPage(canvas);
+        await pdfTool.renderPage(canvas);
         updateCanvasInputsFromTool()
 
-        // Manage signature canvases visibility per page
-        if (currentPDFTool()!.currentPage === 6) {
-            displaySigsPage6();
+        // Manage signature canvases visibility per page (les signatures vivent
+        // sur la DERNIÈRE page, plus codée en dur à 6)
+        if (pdfTool.currentPage === lastPageNumber) {
+            displaySigsLastPage();
         } else {
             removeSigsCanvases();
         }
@@ -37,16 +44,16 @@ export function PDFCanvas() {
 
 
     function updateCanvasInputsFromTool() {
-        const fields = currentPDFTool()?.PDFInputsFieldsMetadata?.filter(page => page.page == currentPDFTool()?.currentPage)[0].fields
-        setCanvasInputs(prev => {
-            if (!prev) return prev
-            prev = [...fields as PDFFields[]]
-            return prev
-        })
+        const pdfTool = currentPDFTool();
+        if (!pdfTool) return
+        // `filter(...)[0].fields` levait un TypeError si aucune page ne matchait
+        // (audit 🟠) — find + fallback explicite sur une liste vide.
+        const pageMeta = pdfTool.PDFInputsFieldsMetadata?.find((page) => page.page == pdfTool.currentPage);
+        setCanvasInputs(pageMeta ? [...pageMeta.fields] : [])
     }
 
-    function displaySigsPage6() {
-        if (currentPDFTool()?.currentPage !== 6) return;
+    function displaySigsLastPage() {
+        if (currentPDFTool()?.currentPage !== currentPDFTool()?.numPages) return;
 
         const pdfCanvas = document.getElementById("pdf-canvas") as HTMLCanvasElement | null;
         if (!pdfCanvas || !pdfCanvas.parentElement) return;

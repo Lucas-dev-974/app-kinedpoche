@@ -189,7 +189,7 @@ export class PDFTool {
       const annotations = await page.getAnnotations();
 
       if (dimensions) {
-        const { pdfWidth, pdfHeight, canvasDisplayWidth } = dimensions;
+        const { pdfWidth, canvasDisplayWidth } = dimensions;
         const scale = canvasDisplayWidth / pdfWidth;
         const viewport = page.getViewport({ scale });
 
@@ -258,29 +258,34 @@ export class PDFTool {
    */
   async renderPage(canvasElement: HTMLCanvasElement) {
     if (this.isRendering) return;
+    if (!this.pdfDoc) return; // outil pas encore prêt
     this.isRendering = true;
+    try {
+      const page = await this.pdfDoc.getPage(this.currentPage);
+      const context = canvasElement?.getContext("2d");
+      const dimensions = await this.getDimensions(this.pdfDoc, "pdf-canvas");
 
-    const page = await this.pdfDoc!.getPage(this.currentPage);
-    const context = canvasElement!.getContext("2d");
-    const dimensions = await this.getDimensions(this.pdfDoc, "pdf-canvas");
 
+      if (dimensions) {
+        const { pdfWidth, canvasDisplayWidth } = dimensions;
+        const scale = (canvasDisplayWidth / pdfWidth) * 2;
 
-    if (dimensions) {
-      const { pdfWidth, pdfHeight, canvasDisplayWidth } = dimensions;
-      const scale = (canvasDisplayWidth / pdfWidth) * 2;
+        const viewport = page.getViewport({ scale });
+        if (canvasElement) {
+          canvasElement.height = viewport.height;
+          canvasElement.width = viewport.width;
+        }
 
-      const viewport = page.getViewport({ scale });
-      if (canvasElement) {
-        canvasElement.height = viewport.height;
-        canvasElement.width = viewport.width;
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport,
+        };
+
+        await page.render(renderContext as RenderParameters).promise;
       }
-
-      const renderContext = {
-        canvasContext: context,
-        viewport: viewport,
-      };
-
-      await page.render(renderContext as RenderParameters).promise;
+    } finally {
+      // Un render qui échoue ne doit pas laisser isRendering figé à true
+      // (plus aucune pagination ne fonctionnait ensuite, audit 🟠).
       this.isRendering = false;
     }
   }
@@ -518,7 +523,9 @@ export class PDFTool {
       const formatDate_ = (value: string) => {
         try {
           const formatedDate = formatDate(value)
-          return formatedDate == "Invalid Date" ? value : formatedDate
+          // formatDate retourne '' pour une date illisible (pas 'Invalid Date') :
+          // conserver la valeur brute au lieu d'effacer le champ (audit 🟠).
+          return formatedDate ? formatedDate : value
         } catch (error) {
           if (import.meta.env.DEV) {
             console.error("Erreur de formatage de date:", error);
@@ -529,11 +536,18 @@ export class PDFTool {
 
       for (const page of this.PDFInputsFieldsMetadata) {
         for (const field of page.fields) {
-          const pdfField = form.getTextField(field.name)
-          if (pdfField) {
+          try {
+            const pdfField = form.getTextField(field.name)
             const rawValue = String(field.value ?? "");
             const valueToWrite = dateFieldIds.has(field.id) ? formatDate_(rawValue) : rawValue;
             pdfField.setText(valueToWrite);
+          } catch (error) {
+            // pdf-lib : getTextField LÈVE si le champ est absent ou non-texte —
+            // un seul champ mal nommé abortait toute la génération (le
+            // `if (pdfField)` était du code mort, audit 🟠). On saute le champ.
+            if (import.meta.env.DEV) {
+              console.warn("Champ PDF ignoré (absent ou non-texte):", field.name, error);
+            }
           }
         }
       }

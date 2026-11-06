@@ -11,8 +11,9 @@ export function PDFInputsOnCanvas() {
     function parseDisplayData(fields: PDFFields): string {
         const dateFields = ["96R", "102R", "122R", "123R", "131R", "138R"]
         if (dateFields.includes(fields.id)) {
-            const dateFormat = formatDate(fields.value)
-            return dateFormat
+            // formatDate retourne '' pour une date illisible : afficher la valeur
+            // brute au lieu de la faire disparaître (audit 🟠)
+            return formatDate(fields.value) || (fields.value ?? "")
         }
         return fields.value ?? ""
     }
