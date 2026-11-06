@@ -26,6 +26,23 @@ const EMPTY_USER: UserEntity = {
   status: "professionnal" as any,
 };
 
+const STORE_KEY = "store";
+const SESSION_TOKEN_KEY = "sessionToken";
+
+// F2 (sécurité) : le JWT de session n'est PLUS persisté dans `store`
+// (localStorage en clair = vol de session à la moindre XSS, survivance sur une
+// machine partagée). Il vit en sessionStorage : survit au rechargement, purgé à
+// la fermeture de l'onglet. Les tokens par contrat des invités, eux, restent
+// dans le store persisté (ils identifient les contrats côté serveur).
+function serializeStore(target: StoreDataType): string {
+  return JSON.stringify({ ...target, token: undefined });
+}
+
+// Pendant un effacement, le trap `set` ne doit plus réécrire le localStorage
+// (l'ancien code repersistait le store, token encore valide, à la première
+// affectation de clearUserData).
+let persistSilenced = false;
+
 class StoreService {
   public data: StoreDataType = {
     isLogin: undefined,
@@ -37,23 +54,46 @@ class StoreService {
       return Reflect.get(target, property, receiver);
     },
     set(target, property, value, receiver) {
+      const oldValue = Reflect.get(target, property, receiver);
       const toReturn = Reflect.set(target, property, value, receiver);
+
       if (property === "contracts") {
         setLocalUpdateEvent(!localeUpdateEvent())
       }
-      localStorage.setItem("store", JSON.stringify(target));
+
+      // Miroir du JWT de session en sessionStorage (jamais dans le store sérialisé)
+      if (property === "token" && value) {
+        sessionStorage.setItem(SESSION_TOKEN_KEY, String(value));
+      }
+
+      // Ne rien persister pendant un effacement, ni pour une écriture sans
+      // changement (l'isLogin=false du logout ne recrée plus l'entrée `store`
+      // juste après le removeItem).
+      if (!persistSilenced && oldValue !== value) {
+        localStorage.setItem(STORE_KEY, serializeStore(target));
+      }
       return toReturn;
     },
   });
 
   constructor() {
     const storeData = this.getStore();
+    const sessionToken = sessionStorage.getItem(SESSION_TOKEN_KEY);
+
     if (!storeData) {
       // Aucun store en localStorage : initialiser avec un user défini mais vide
       this.proxy.user = EMPTY_USER;
       this.proxy.isLogin = undefined;
       this.proxy.contracts = [];
       this.setState();
+      return;
+    }
+
+    // Store persisté sans JWT de session alors que isLogin = true : session
+    // perdue (onglet fermé, navigateur relancé, machine partagée) → purger et
+    // repartir déconnecté au lieu de rester "connecté" sans token.
+    if (storeData.isLogin === true && !sessionToken) {
+      this.clearUserData();
       return;
     }
 
@@ -65,10 +105,14 @@ class StoreService {
       this.proxy.user = EMPTY_USER;
     }
     this.proxy.isLogin = storeData.isLogin;
+
+    if (sessionToken) {
+      this.proxy.token = sessionToken;
+    }
   }
 
   getStore(): StoreDataType | null {
-    const stored = localStorage.getItem("store");
+    const stored = localStorage.getItem(STORE_KEY);
     if (!stored) return null;
     try {
       return JSON.parse(stored) as StoreDataType;
@@ -78,27 +122,30 @@ class StoreService {
   }
 
   setState() {
-    localStorage.setItem("store", JSON.stringify(this.proxy));
+    localStorage.setItem(STORE_KEY, serializeStore(this.data));
   }
 
   /**
    * Vide toutes les données utilisateur du localStorage et réinitialise le store
    */
   clearUserData() {
-    // Réinitialiser les données utilisateur dans le proxy
-    this.proxy.isLogin = false;
-    this.proxy.token = "";
-    this.proxy.user = EMPTY_USER;
-    this.proxy.contracts = [];
+    // F2 : neutraliser SANS re-persister à chaque affectation — les mutations
+    // passent par le proxy ; rien n'est sérialisé tant que `persistSilenced`.
+    persistSilenced = true;
+    try {
+      this.proxy.isLogin = false;
+      this.proxy.token = "";
+      this.proxy.user = EMPTY_USER;
+      this.proxy.contracts = [];
+    } finally {
+      persistSilenced = false;
+    }
 
-    // Vider complètement le localStorage
-    localStorage.removeItem("store");
-
-    // Réinitialiser l'état par défaut
-    this.data = {
-      isLogin: undefined,
-      contracts: []
-    };
+    // L'entrée store est retirée APRÈS neutralisation ; les écritures sans
+    // changement qui suivent (setGlobalIsLogin(false) dans logout) ne la
+    // recréent pas.
+    localStorage.removeItem(STORE_KEY);
+    sessionStorage.removeItem(SESSION_TOKEN_KEY);
   }
 }
 

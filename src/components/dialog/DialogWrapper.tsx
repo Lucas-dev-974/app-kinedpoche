@@ -1,5 +1,6 @@
 import { createEffect, createSignal, JSX, Match, Show, Switch } from "solid-js";
 import { setCurrentPDFTool } from "../ContractEditor/PDFEditor";
+import { PDFTool } from "../../utils/PDFTool";
 
 import { setLoadContrat } from "../../const.data";
 import { OutlinedButton } from "../buttons/OulinedButton";
@@ -68,6 +69,9 @@ export function DialogWrapper(props: DialogWrapperProps) {
   async function closeDialogTool() {
     setOpenDialogs(DIALOG_NAMES.none);
     setLoadContrat(undefined);
+    // F1 : détruire le singleton — setCurrentPDFTool(undefined) seul laisse
+    // PDFTool.instance en vie avec le contractData du contrat/patient précédent.
+    PDFTool.resetInstance();
     setCurrentPDFTool(undefined);
     setOpen(false);
     removeSigneBackQuery();

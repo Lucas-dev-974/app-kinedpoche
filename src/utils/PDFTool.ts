@@ -85,19 +85,21 @@ export class PDFTool {
   public static getInstance(url: string, canvasID: string = "pdf-canvas"): PDFTool {
     if (!PDFTool.instance) {
       PDFTool.instance = new PDFTool(url, canvasID);
-    } else if (PDFTool.instance.url !== url || PDFTool.instance.canvasID !== canvasID) {
-      // Réinitialiser l'instance si les paramètres ont changé
-      PDFTool.instance.url = url;
-      PDFTool.instance.canvasID = canvasID;
-      PDFTool.instance.PDFInputsFieldsMetadata = [];
-      PDFTool.instance.contractData = {};
-      PDFTool.instance.pdfDoc = undefined;
-      PDFTool.instance.pdfBlob = undefined;
-      PDFTool.instance.pdfFile = undefined;
-      PDFTool.instance.numPages = undefined;
-      PDFTool.instance.currentPage = 1;
-      PDFTool.instance.isRendering = false;
     }
+    // Réinitialiser le contenu de l'instance à CHAQUE accès, même si url/canvasID
+    // sont identiques : les données du contrat précédent (noms, emails, dates,
+    // data-URL de signatures) ne doivent jamais survivre à une réouverture.
+    // PDFEditor.initialize() repeuple PDFInputsFieldsMetadata/contractData juste après.
+    PDFTool.instance.url = url;
+    PDFTool.instance.canvasID = canvasID;
+    PDFTool.instance.PDFInputsFieldsMetadata = [];
+    PDFTool.instance.contractData = {};
+    PDFTool.instance.pdfDoc = undefined;
+    PDFTool.instance.pdfBlob = undefined;
+    PDFTool.instance.pdfFile = undefined;
+    PDFTool.instance.numPages = undefined;
+    PDFTool.instance.currentPage = 1;
+    PDFTool.instance.isRendering = false;
     return PDFTool.instance;
   }
 
@@ -415,12 +417,27 @@ export class PDFTool {
    * @param pdfFile Le fichier PDF à télécharger
    * @param download True si le PDF doit être téléchargé, false sinon
    */
-  async downloadModifiedPdfWithStoredSignatures(pdfFile: File, download: boolean = true) {
-    const reader = new FileReader();
+  async downloadModifiedPdfWithStoredSignatures(pdfFile: File, download: boolean = true): Promise<void> {
+    // F4 : le vrai travail vit dans reader.onload — l'ancienne version laissait
+    // le `await` de l'appelant se résoudre avant la fin réelle (et chaque erreur
+    // intérieure devenait une unhandled rejection : isLoading figé à true,
+    // bouton gelé, aucune notification).
+    return new Promise<void>((resolve, reject) => {
+      const reader = new FileReader();
 
-    reader.onload = async () => {
-      const pdfData = new Uint8Array(reader.result as ArrayBufferLike);
-      const pdfDoc_ = await PDFDocument.load(pdfData);
+      reader.onload = () => {
+        this.setFormAndSignaturesIntoPdf(reader.result as ArrayBufferLike, download).then(resolve, reject);
+      };
+
+      reader.onerror = () => reject(reader.error ?? new Error("Lecture du fichier PDF impossible"));
+      reader.readAsArrayBuffer(pdfFile);
+    });
+  }
+
+  /** Insère signatures + valeurs de champs dans le PDF et produit le blob final */
+  private async setFormAndSignaturesIntoPdf(pdfData: ArrayBufferLike, download: boolean) {
+      const pdfUint8Array = new Uint8Array(pdfData);
+      const pdfDoc_ = await PDFDocument.load(pdfUint8Array);
 
       // Récupérer la dernière page du PDF
       const lastPageIndex = pdfDoc_.getPageCount() - 1;
@@ -537,9 +554,6 @@ export class PDFTool {
       } else {
         setToSendBlob(blob)
       }
-    };
-
-    reader.readAsArrayBuffer(pdfFile as File);
   }
 
   setCurrentPage(page: number) {

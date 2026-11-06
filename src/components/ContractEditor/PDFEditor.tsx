@@ -15,7 +15,14 @@ export function PDFEditor() {
     setCurrentPDFTool(pdfTool)
   });
 
-  onCleanup(() => currentPDFTool()?.resetContractData)
+  onCleanup(() => {
+    // F1 : appeler la fonction (parenthèses absentes avant) puis détruire le
+    // singleton — le contractData du contrat précédent (noms, emails,
+    // signatures) ne doit jamais survivre à la fermeture du dialog.
+    currentPDFTool()?.resetContractData();
+    PDFTool.resetInstance();
+    setCurrentPDFTool(undefined);
+  });
 
   return <CTAPDFViewer />;
 }
