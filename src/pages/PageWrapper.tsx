@@ -1,4 +1,4 @@
-import { children, createSignal, JSXElement, onMount } from "solid-js";
+import { children, onMount, JSXElement } from "solid-js";
 import { useNavigate } from "@solidjs/router";
 import { Navbar } from "../components/navbar/Navbar";
 import { Notification } from "../components/notification/Notification";
@@ -6,17 +6,14 @@ import { FloatingMenu } from "../components/FloattingMenu/floating-menu/Floating
 import { setNavigateFunction } from "../services/auth.service";
 import { contractService } from "../services/contract.service";
 
-import { setLoadContrat } from "../const.data";
+import { setLoadContrat, setSigneBack } from "../const.data";
 import { ContractEntity } from "../models/contract.entity";
 import { DIALOG_NAMES, openDialogTool } from "../components/dialog/DialogWrapper";
 import storeService from "../utils/store.service";
-import { UserEntity } from "../models/user.entity";
 
 interface PageWrapperProps {
     children: JSXElement;
 }
-
-export const [signeBack, setSigneBack] = createSignal<boolean>(false);
 
 export function PageWrapper(props: PageWrapperProps) {
 
@@ -29,17 +26,25 @@ export function PageWrapper(props: PageWrapperProps) {
         const queryParams = new URLSearchParams(window.location.search);
         const token = queryParams.get("signe-back");
 
-        if (storeService.proxy.user == {} as UserEntity) {
-            storeService.proxy.user = undefined;
-        }
         if (token) {
-            const contract = await contractService.getContractByToken(token);
-            if (contract) {
-                setLoadContrat(contract as Partial<ContractEntity>);
-                setSigneBack(true)
-                openDialogTool(DIALOG_NAMES.editContract);
+            try {
+                const contract = await contractService.getContractByToken(token);
+                if (contract) {
+                    setLoadContrat(contract as Partial<ContractEntity>);
+                    setSigneBack(true);
+                    openDialogTool(DIALOG_NAMES.editContract);
 
-                storeService.proxy.contracts = [contract];
+                    // Fusionner par id au lieu d'écraser tous les contrats locaux
+                    // (audit 🟠 PageWrapper) — l'ancien `contracts = [contract]`
+                    // supprimait le store local du kiné.
+                    const existing = (storeService.proxy.contracts ?? []) as Partial<ContractEntity>[];
+                    const merged = existing.some((c) => c.id == contract.id)
+                        ? existing.map((c) => (c.id == contract.id ? contract : c))
+                        : [...existing, contract];
+                    storeService.proxy.contracts = merged;
+                }
+            } catch {
+                // Erreur déjà notifiée par le fetcher (401/Réseau) — pas d'unhandled rejection
             }
         }
     });

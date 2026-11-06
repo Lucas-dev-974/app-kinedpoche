@@ -1,4 +1,6 @@
 import { ReportBugDialog } from "../../dialog/report-bug/ReportBugDialog";
+import { UserMenuButton } from "./UserMenuButton";
+import { authService } from "../../../services/auth.service";
 import { Accessor, createRenderEffect, createSignal, onCleanup, onMount } from "solid-js";
 
 interface UserMenuDialogProps {
@@ -39,7 +41,15 @@ export function UserMenuDialog(props: UserMenuDialogProps) {
         hidden: !props.openDialog,
       }}
     >
-      {/* Todo: bouton déconnexion + refactor */}
+      {/* Audit 🟠 : le `logout()` n'était jusqu'ici appelé QUE par le 401 — aucun
+          moyen pour un kiné de se déconnecter volontairement. */}
+      <UserMenuButton
+        text="Se déconnecter"
+        onClick={() => {
+          props.onClose();
+          authService.logout();
+        }}
+      />
       <ReportBugDialog />
     </div>
   );

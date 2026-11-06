@@ -3,8 +3,7 @@ import { currentPDFTool, PDFEditor } from "../ContractEditor/PDFEditor";
 import { DialogWrapper } from "../dialog/DialogWrapper";
 import { ContratInformationsDropdowns } from "./DropdownContratInformations/ContratInformationsDropdowns";
 import { PDFTool } from "../../utils/PDFTool";
-import { loadContract } from "../../const.data";
-import { signeBack } from "../../pages/PageWrapper";
+import { loadContract, signeBack } from "../../const.data";
 
 
 export function EditContractDialog() {

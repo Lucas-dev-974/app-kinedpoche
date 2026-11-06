@@ -2,7 +2,7 @@ import { createEffect, createSignal, JSX, Match, Show, Switch } from "solid-js";
 import { setCurrentPDFTool } from "../ContractEditor/PDFEditor";
 import { PDFTool } from "../../utils/PDFTool";
 
-import { setLoadContrat } from "../../const.data";
+import { setLoadContrat, setSigneBack } from "../../const.data";
 import { OutlinedButton } from "../buttons/OulinedButton";
 import { Overlay } from "./Overlay";
 import { DialogContainer } from "./dialog-components/DialogContainer";
@@ -63,18 +63,33 @@ export function DialogWrapper(props: DialogWrapperProps) {
   function removeSigneBackQuery() {
     const queryParams = new URLSearchParams(window.location.search);
     queryParams.delete("signe-back");
-    window.history.replaceState({}, "", window.location.pathname + "?" + queryParams.toString());
+    const query = queryParams.toString();
+    // Pas de `?` orphelin quand la query devient vide (audit 🟡)
+    window.history.replaceState({}, "", window.location.pathname + (query ? "?" + query : ""));
   }
 
   async function closeDialogTool() {
     setOpenDialogs(DIALOG_NAMES.none);
-    setLoadContrat(undefined);
-    // F1 : détruire le singleton — setCurrentPDFTool(undefined) seul laisse
-    // PDFTool.instance en vie avec le contractData du contrat/patient précédent.
-    PDFTool.resetInstance();
-    setCurrentPDFTool(undefined);
+
+    // Resets destructifs scopés au dialog PDF : ils ne doivent pas tourner à la
+    // fermeture des autres dialogs (audit 🟠 DialogWrapper).
+    if (props.name === DIALOG_NAMES.editContract) {
+      setLoadContrat(undefined);
+      setSigneBack(false);
+      // F1 : détruire le singleton — setCurrentPDFTool(undefined) seul laisse
+      // PDFTool.instance en vie avec le contractData du contrat/patient précédent.
+      PDFTool.resetInstance();
+      setCurrentPDFTool(undefined);
+      removeSigneBackQuery();
+    }
+
     setOpen(false);
-    removeSigneBackQuery();
+    // Neutraliser le signal de fermeture après traitement : sinon la valeur
+    // restait figée (ex: 'registerInformations') et l'instance, montée en
+    // permanence dans la Navbar, ré-exécutait son reset à CHAQUE changement
+    // d'openDialogs → dialog ouvert puis refermé instantanément, editContract
+    // écrasé pendant son ouverture, "nouveau contrat" au lieu de mise à jour.
+    setCloseDialog(DIALOG_NAMES.none);
   };
 
   createEffect(() => {
