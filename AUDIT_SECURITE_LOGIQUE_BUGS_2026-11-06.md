@@ -20,7 +20,7 @@ Vérification : `tsc --noEmit` — **21 erreurs avant = 21 après** (0 nouvelle 
 
 ## ✅ Statut des correctifs — passe 🟠/🟡 du 06/11/2026 (suite)
 
-`tsc --noEmit` : 21 → **19 erreurs** (les 2 `pdfHeight` de PDFTool nettoyées au passage) · `vite build` ✓.
+`tsc --noEmit` : 21 → **19 erreurs** (les 2 `pdfHeight` de PDFTool nettoyées au passage) · `vite build` ✓. Passe 🟡 finale et store réactif : tsc **0 erreur** (audit au propre).
 
 | Item audit | Statut | Détails |
 |---|---|---|
@@ -32,10 +32,10 @@ Vérification : `tsc --noEmit` — **21 erreurs avant = 21 après** (0 nouvelle 
 | 🟠 `formatDate` '' (dates illisibles effacées) | ✅ **patché** (`e21846b`) | PDFTool (`formatDate_`) + `parseDisplayData` : la valeur brute est conservée quand formatDate retourne '' |
 | 🟠 pagination = 6 codée en dur + `filter()[0].fields` + `onMount` sans garde | ✅ **patché** (`e21846b`) | `numPages` dynamique (la page des signatures est la **dernière**), `find` + fallback liste vide à la place du `filter()[0]`, gardes outil/canvas dans PDFCanvas et PDFActions |
 | 🟠 chaîne signatures (5 sous-bugs) | ✅ **patché** (`0b2a1ab`) | (1) listener resize retiré via `onCleanup` (démontage ouvert couvert) ; (2) `off()` du pad précédent + `clearRect` à l'ouverture — plus de pads fantômes ni de traits fantômes re-sauvegardables (le canvas survit aux réouvertures, BottomSlideDialog garde ses enfants montés) ; (3) restauration déclenchée par `canvasSized` **après** le resize final + resize no-op à taille inchangée (la signature restaurée n'est plus effacée) ; (4) cleanup avec `undefined` au lieu de `''` (falsy) qui sautait la restauration ; (5) `drawImage` avec ratio préservé, centré (SignatureManager + `drawSig` PDFCanvas) |
-| 🟠 `DropdownWrapper` enfants instanciés 2× | ⏳ **non fait** | refacto : config explicite (ids/titres) au lieu d'introspecter les children |
-| 🟠 store maison non réactif (anti-pattern Solid) | ⏳ **non fait** | gros chantier (`createStore` + suppression de la double source de vérité `proxy` vs signal) |
+| 🟠 `DropdownWrapper` enfants instanciés 2× | ✅ **patché** (`dd6e1c0`) | config explicite `itemsConfig` (ids 1-4) à la place de l'introspection des children — chaque enfant n'est plus instancié/compté une première fois |
+| 🟠 store maison non réactif (anti-pattern Solid) | ✅ **patché** (`3b34061`) | `createMutable` Solid remplace le Proxy maison : lectures `proxy.user`/`proxy.contracts` trackées dans le JSX, affectations directes conservées ; persistance câblée par **effet réactif** (sérialise tout le store, token exclu) ; `loggedIn` **dérivé du store** (fin de la double source `proxy.isLogin` vs signal) ; l'event `localeUpdateEvent` suit `contracts` réactif |
 | 🟠 remount BottomMenuPageContract à chaque bascule | ⏳ **non fait** | réstructure UI (garder l'état entre toggles du Switch/Match) |
-| 🟡 restants | ⏳ **non fait** | imports fantômes (chaîne Announcements), `Number()` non validé / 0 % bloquant, doublon de listes d'ids date + constantes A4, `getDimensions` re-télécharge la page 1 par page, id de notification en course, auth/fetch divers (`navigateFn` global, AbortController sur json), validation RegisterInformations, `listFromIDSToken` double sérialisation + types, CSP nginx, CI déploie les PR |
+| 🟡 restants | ✅ **purge faite** (`dd6e1c0`) | imports fantômes (chaîne Announcements **supprimée**), TS6133 nettoyés (tsc 21 → **0 erreur**), `Number()` non validé → NaN jamais envoyé, 0 % désormais valide, compteur de notification monotone, `listFromIDSToken` en tableau direct (API accepte les 2 formes), fusion login sur `EMPTY_USER` (TS2322), AbortController couvre `json()`/`text()`, TypeError réseau matché par classe, `navigateFn` nettoyé au démontage, validation email/birthday avant écriture, sources uniques `DATE_FIELD_IDS`/A4, `getDimensions` appelé 1 fois (plus de re-téléchargement page 1 × pages), CI : deploy FTP sur push main seulement, nginx : nosniff + X-Frame-Options + Referrer-Policy (CSP stricte/HSTS volontairement reportés) |
 
 ## Synthèse
 
