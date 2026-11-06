@@ -33,6 +33,10 @@ jobs:
         run: ls -la ./dist/
 
       - name: Déploiement via FTP
+        # Audit 🟡 : un simple PR déclenchait le déploiement FTP avec la branche
+        # courante — le build reste une validation CI, le déploiement ne tourne
+        # que sur un push vers main.
+        if: github.event_name == 'push'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
