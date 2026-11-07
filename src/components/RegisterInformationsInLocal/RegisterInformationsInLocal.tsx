@@ -8,6 +8,18 @@ import storeService from "../../utils/store.service";
 import { NotificationService } from "../../utils/notification.service";
 import { formatDateForInput } from "../ContractDialog/DropdownContratInformations/ContratInformationsDropdowns";
 
+// Look pro du dialog : tokens statiques niveau module (aucune dépendance
+// réactive) — sections repérées par une pastille verte + titre uppercase
+// discret, libellés/entrées cohérents sur Nunito.
+const labelCls = "font-[Nunito] text-[12.5px] font-bold text-slate-600 mb-1";
+const inputCls = "w-full box-border rounded-[10px] border-slate-300 bg-white px-3 py-2 text-[14px] text-slate-800 shadow-sm duration-150 hover:border-slate-400 focus:border-[#099773] focus:outline-none focus:ring-2 focus:ring-[#099773]/25";
+const wrapperCls = "grid grid-cols-1 py-0";
+const sectionTitleCls = "m-0 mb-3 flex items-center gap-2 font-[Nunito] text-[11px] font-bold uppercase tracking-[0.09em] text-slate-400";
+const genderItems = [
+    { text: "Homme", value: "male", id: "genderM" },
+    { text: "Femme", value: "female", id: "genderF" },
+];
+
 export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
     let birthdayDate: Date | undefined = undefined;
     if (storeService.proxy.user) {
@@ -25,13 +37,6 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
 
     const btnLabel = props.isInNavbar ? "Mes infos" : "Enregistrer vos informations";
     const title = props.isInNavbar ? "Modifier vos informations" : "Enregistrer vos informations";
-
-    // Look pro du dialog : tokens typographiques cohérents (Nunito), sections
-    // repérées par un pastille verte + titre uppercase discret.
-    const labelCls = "font-[Nunito] text-[12.5px] font-bold text-slate-600 mb-1";
-    const inputCls = "w-full box-border rounded-[10px] border-slate-300 bg-white px-3 py-2 text-[14px] text-slate-800 shadow-sm duration-150 hover:border-slate-400 focus:border-[#099773] focus:outline-none focus:ring-2 focus:ring-[#099773]/25";
-    const wrapperCls = "grid grid-cols-1 py-0";
-    const sectionTitleCls = "m-0 mb-3 flex items-center gap-2 font-[Nunito] text-[11px] font-bold uppercase tracking-[0.09em] text-slate-400";
 
     const [name, setName] = createSignal<string>(storeService.proxy.user?.fullname ?? "");
     const [email, setEmail] = createSignal<string>(storeService.proxy.user?.email ?? "");
@@ -59,8 +64,8 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
             return;
         }
 
-        const birthdayDate = birthday() ? new Date(birthday()) : undefined;
-        if (birthdayDate && isNaN(birthdayDate.getTime())) {
+        const parsedBirthday = birthday() ? new Date(birthday()) : undefined;
+        if (parsedBirthday && isNaN(parsedBirthday.getTime())) {
             NotificationService.push({
                 content: "Date de naissance invalide",
                 type: "error",
@@ -73,7 +78,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
             email: email(),
             orderNumber: orderNumber(),
             department: department(),
-            birthday: birthdayDate,
+            birthday: parsedBirthday,
             bornLocation: bornLocation(),
             personalAdress: personalAdress(),
             officeAdress: officeAdress(),
@@ -88,11 +93,6 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
         });
         closeDialogTool(DIALOG_NAMES.registerInformations);
     }
-
-    const genderItems = [
-        { text: "Homme", value: "male", id: "genderM" },
-        { text: "Femme", value: "female", id: "genderF" },
-    ];
 
     return (
         <DialogWrapper
