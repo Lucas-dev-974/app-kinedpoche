@@ -1,49 +1,62 @@
-# PWA Starter
+# Kiné de poche — app web (app-kinedpoche)
 
-[**Straight to Full Documentation**](https://docs.pwabuilder.com/#/starter/quick-start)
+SPA **SolidJS + Vite** pour la création et la signature de contrats entre kinésithérapeutes : PDF AcroForm pré-rempli, signatures au doigt/crayon, envoi par email, persistance locale des contrats (invités) et en base (comptes).
 
-The PWABuilder pwa-starter is our opinionated, best practices, production tested starter that we use to build all of our PWAs, including [PWABuilder itself](https://blog.pwabuilder.com/posts/introducing-the-brand-new-pwa-builder/)! The pwa-starter is a starter codebase, just like create-react-app or the Angular CLI can generate, that uses the PWABuilder team&#39;s preferred front-end tech stack. We also have a CLI tool to allow you to create a PWA template from the command line.
+> Ce repo fait partie du monorepo kinedpoche : l'API vit dans `../api-kinedpoche`, l'orchestration Docker dans `../docker-compose.yml`.
 
-## Jump Right In
+## Stack
 
-Install the PWABuilder CLI:
+- **SolidJS 1.9** + `@solidjs/router`, TypeScript
+- **Vite 5** + `vite-plugin-pwa` (service worker `injectManifest`, workbox)
+- **Tailwind CSS** en build-time (`tailwind.config.js` + `postcss.config.js`, contenu scanné dans `src/**`) — l'ancien script CDN runtime a été retiré le 07/11/2026 (prod non supportée par le Play CDN, styles perdus hors-ligne)
+- **pdfjs-dist** (rendu canvas + extraction des champs AcroForm), **pdf-lib** (génération du PDF signé), **signature_pad** (capture des signatures)
 
-`npm i -g @pwabuilder/cli`
+## Scripts
 
-And create a new app with this command:
+| Commande | Rôle |
+|---|---|
+| `npm run dev` | serveur Vite (http://localhost:5173) |
+| `npm run build` | build de prod (vite build + génération du SW + precache) |
 
-`pwa create`
+Le stack complet (api + web + postgres) se lance depuis la racine du monorepo :
 
-And start your app locally with:
-
-`pwa start`
-
-And that's it! Good luck on your Progressive Web App adventure!
-
-## More Info
-
-[![Get started with the pwa-starter!](https://img.youtube.com/vi/u3pWKpmic_k/0.jpg)](https://www.youtube.com/watch?v=u3pWKpmic_k)
-
-With it you get an app that:
-- Has no build system to set up and no boilerplate code to add. Everything is included out of the box.
-- Has a Service Worker system using [Workbox](https://developers.google.com/web/tools/workbox/)
-- Scores close to 100 on Lighthouse out of the box
-- Has everything needed to be installable in the browser
-- Is ready to be package for the app stores using [PWABuilder](https://www.pwabuilder.com)
-- Uses the [Azure Static Web Apps CLI](https://azure.github.io/static-web-apps-cli) which enables emulating your production environment locally, and gets you ready for deploying to Azure Static Web Apps!
-
-and all with just a few button clicks 😊.
+```bash
+docker compose up -d          # dev (web:5173, api:3001)
+docker compose --profile prod up -d --build   # images de prod (web:3000, api:3002)
+```
 
 ## Configuration
 
-### Variables d'environnement
-
-Créez un fichier `.env` à la racine du projet avec les variables suivantes :
+Variables d'environnement (`.env`, surchargées par le compose racine) :
 
 ```env
 # URL complète de l'API backend (optionnel)
-# Si non défini, l'application utilisera automatiquement: http://api.{host}/api
-VITE_HOST=http://localhost:3000/api
+# Si non défini, l'application utilise automatiquement: http://api.{host}/api
+VITE_HOST=http://localhost:3001/api
 ```
 
-**Note de sécurité :** Le token d'authentification est stocké dans le `localStorage`, ce qui le rend vulnérable aux attaques XSS. Pour une sécurité renforcée, il est recommandé d'utiliser des cookies httpOnly côté backend.
+> **Note de sécurité (à jour 07/11/2026)** : le JWT de session vit en **sessionStorage**
+> (purge à la fermeture de l'onglet, jamais dans le JSON persisté) — la note précédente
+> qui le plaçait en localStorage est obsolète depuis le correctif F2 du 06/11.
+
+## Architecture rapide
+
+```
+src/
+├── pages/          Home, Login, Register + PageWrapper (layout + ?signe-back=)
+├── components/
+│   ├── ContractDialog/     dialog d'édition : accordéons (KineFields fusionné),
+│   │                       prévisualisation PDF, envoi email, Signatures/
+│   ├── ContractEditor/     rendu canvas (PDFCanvas), champs overlay, CTA save/download
+│   ├── dialog/            DialogWrapper générique + Overlay/Confirmation/ReportBug
+│   ├── table/ dialog/ inputs/ buttons/ notification/ navbar/   (bibliothèque réutilisable)
+├── services/       fetcher typé (auth, contract, mail) — 401 → ApiError + logout
+├── utils/          store réactif Solid (store.service), PDFTool (singleton PDF),
+│                   notifications, mapping champs PDF (pdf-field-mapping.config.ts)
+└── const.data.ts   signaux globaux (loggedIn dérivé, loadContract, signeBack)
+public/sw.js        service worker workbox : precache + NavigationRoute SPA offline
+```
+
+## Déploiement
+
+CI GitHub (`.github/workflows/action.yml`) : build + déploiement FTP **sur push main uniquement** (`local-dir: dist/` ; les PR ne déclenchent que le build de validation).
