@@ -13,6 +13,10 @@ export interface DocsViewsItems {
   action: () => void;
 }
 
+// Titre d'en-tête par VUE courante (l'entête suit la vue, pas un nom fixe).
+export const viewTitle = (view: DocsViewsEnum): string =>
+    view === DocsViewsEnum.clientFiles ? "Fiches clients" : "Contrats";
+
 export function BottomMenuPageRouter() {
   const [currentDocsView, setCurrentDocsView] = createSignal<DocsViewsEnum>(DocsViewsEnum.contract);
   const changeCurrentDocsView = (view: DocsViewsEnum) => setCurrentDocsView(view);
@@ -20,7 +24,7 @@ export function BottomMenuPageRouter() {
 
   return (
     <div class="flex min-h-0 flex-1 flex-col">
-      <BottomMenuHeader />
+      <BottomMenuHeader title={viewTitle(currentDocsView())} />
 
       {/* Corps scrollable (la feuille capte une hauteur fixe : 85vh / 600px) */}
       <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-5 pt-4">
