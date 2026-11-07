@@ -124,81 +124,102 @@ export function ContractInformationsFields(props: ContractInformationsFieldsProp
         </div>
       </Show>
 
-      <LabeledInput
-        id="start-date"
-        label="Date de début"
-        type="date"
-        onInput={(e) => {
-          HandlerToUpdateFormInputsAndPDFInputs("startDate", e.target.value);
-        }}
-        value={startDate()}
-      />
-      <LabeledInput
-        id="end-date"
-        label="Date de fin"
-        type="date"
-        onInput={(e) => {
-          HandlerToUpdateFormInputsAndPDFInputs("endDate", e.target.value);
-        }}
-        value={endDate()}
-      />
+      <div class="space-y-3.5">
+        <div class="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
+          <LabeledInput
+            id="start-date"
+            label="Date de début"
+            type="date"
+            onInput={(e) => {
+              HandlerToUpdateFormInputsAndPDFInputs("startDate", e.target.value);
+            }}
+            value={startDate()}
+            variant="pro"
+          />
+          <LabeledInput
+            id="end-date"
+            label="Date de fin"
+            type="date"
+            onInput={(e) => {
+              HandlerToUpdateFormInputsAndPDFInputs("endDate", e.target.value);
+            }}
+            value={endDate()}
+            variant="pro"
+          />
+        </div>
 
-      <LabeledInput
-        id="percent-returned-to-subsitute"
-        label="Pourcentage reversé au remplaçant"
-        type="number"
-        onInput={(e) => {
-          HandlerToUpdateFormInputsAndPDFInputs("percentReturnToSubstitute", e.target.value);
-        }}
-        value={percentReturnToSubstitute()?.toString()}
-      />
+        <div class="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
+        <LabeledInput
+          id="percent-returned-to-subsitute"
+          label="Pourcentage reversé au remplaçant"
+          type="number"
+          onInput={(e) => {
+            HandlerToUpdateFormInputsAndPDFInputs("percentReturnToSubstitute", e.target.value);
+          }}
+          value={percentReturnToSubstitute()?.toString()}
+          variant="pro"
+        />
 
-      <LabeledInput
-        id="percent-returned-to-subsitute-before-date"
-        label="Date limite de paiement au lieu de pourcentage reversé "
-        type="date"
-        onInput={(e) => {
-          HandlerToUpdateFormInputsAndPDFInputs("percentReturnToSubstituteBeforeDate", e.target.value);
-        }}
-        value={percentReturnToSubstituteBeforeDate()?.toString()}
-      />
+        <LabeledInput
+          id="percent-returned-to-subsitute-before-date"
+          label="Date limite de paiement au lieu du pourcentage reversé"
+          type="date"
+          onInput={(e) => {
+            HandlerToUpdateFormInputsAndPDFInputs("percentReturnToSubstituteBeforeDate", e.target.value);
+          }}
+          value={percentReturnToSubstituteBeforeDate()?.toString()}
+          variant="pro"
+        />
+      </div>
 
-      <LabeledInput
-        id="non-installation-radius"
-        label="Rayon de non installation (KM) si plus de 3 mois  "
-        type="number"
-        onInput={(e) => {
-          HandlerToUpdateFormInputsAndPDFInputs("nonInstallationRadius", e.target.value);
-        }}
-        value={nonInstallationRadius()?.toString()}
-      />
-      <LabeledInput
-        id="conciliationCDOMK "
-        label="Département de l'ordre concerné si conciliation"
-        type="text"
-        onInput={(e) => {
-          HandlerToUpdateFormInputsAndPDFInputs("conciliationCDOMK", e.target.value);
-        }}
-        value={conciliationCDOMK()}
-      />
-      <LabeledInput
-        id="make-at-location"
-        label="Fait à"
-        type="text"
-        onInput={(e) => {
-          HandlerToUpdateFormInputsAndPDFInputs("doneAtLocation", e.target.value);
-        }}
-        value={doneAtLocation()}
-      />
-      <LabeledInput
-        id="make-at-date"
-        label="Fait le"
-        type="date"
-        onInput={(e) => {
-          HandlerToUpdateFormInputsAndPDFInputs("doneAt", e.target.value);
-        }}
-        value={doneAt()}
-      />
+      <div class="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
+        <LabeledInput
+          id="non-installation-radius"
+          label="Rayon de non installation (KM) si plus de 3 mois"
+          type="number"
+          onInput={(e) => {
+            HandlerToUpdateFormInputsAndPDFInputs("nonInstallationRadius", e.target.value);
+          }}
+          value={nonInstallationRadius()?.toString()}
+          variant="pro"
+        />
+        <LabeledInput
+          id="conciliationCDOMK "
+          label="Département de l'ordre concerné si conciliation"
+          type="text"
+          placeholder="Ex : 75"
+          onInput={(e) => {
+            HandlerToUpdateFormInputsAndPDFInputs("conciliationCDOMK", e.target.value);
+          }}
+          value={conciliationCDOMK()}
+          variant="pro"
+        />
+      </div>
+
+      <div class="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
+        <LabeledInput
+          id="make-at-location"
+          label="Fait à"
+          type="text"
+          placeholder="Ex : Paris"
+          onInput={(e) => {
+            HandlerToUpdateFormInputsAndPDFInputs("doneAtLocation", e.target.value);
+          }}
+          value={doneAtLocation()}
+          variant="pro"
+        />
+        <LabeledInput
+          id="make-at-date"
+          label="Fait le"
+          type="date"
+          onInput={(e) => {
+            HandlerToUpdateFormInputsAndPDFInputs("doneAt", e.target.value);
+          }}
+          value={doneAt()}
+          variant="pro"
+        />
+        </div>
+      </div>
     </DropdownItem>
   );
 }

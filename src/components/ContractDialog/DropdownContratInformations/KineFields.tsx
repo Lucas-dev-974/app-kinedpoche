@@ -1,6 +1,6 @@
 import { currentPDFTool } from "../../ContractEditor/PDFEditor";
 import { DorpdownItemType } from "../../Dropdown/DropdownWrapper";
-import { RadioButtons } from "../../inputs/DialogToInputRadio";
+import { PillRadioGroup } from "../../inputs/PillRadioGroup";
 import { DropdownItem } from "../../Dropdown/DropdownItem";
 import { FitFieldsWithUserData } from "./FitFieldsWithUserData";
 import { GenderEnum } from "../../../utils/PDFTool";
@@ -285,69 +285,84 @@ export function KineFields(props: AccordionFieldsProps & { role: KineRole }) {
         </div>
       </Show>
 
-      <RadioButtons
-        legend="Genre"
-        name={`${props.role}-gender`}
-        items={[
-          { id: `${props.role}-mister`, text: "Monsieur", value: GenderEnum.male },
-          { id: `${props.role}-miss`, text: "Madame", value: GenderEnum.female },
-        ]}
-        onChange={(e) => {
-          const target = e.target as HTMLInputElement;
-          state.updateFormAndPdfInputs("gender", target.value as GenderEnum);
-        }}
-        value={state.gender()}
-      />
-
-      <LabeledInput
-        id={`${props.role}-name`}
-        label="Nom, prénom"
-        type="text"
-        onInput={(e) => state.updateFormAndPdfInputs("name", e.target.value)}
-        value={state.name()}
-      />
-      <LabeledInput
-        id={`${props.role}-mail`}
-        label="Email"
-        type="email"
-        onInput={(e) => state.updateFormAndPdfInputs("email", e.target.value)}
-        value={state.email()}
-      />
-      <LabeledInput
-        id={`${props.role}-birthday`}
-        label="Né(e) le"
-        type="date"
-        onInput={(e) => state.updateFormAndPdfInputs("birthday", e.target.value)}
-        value={state.birthday()}
-      />
-      <LabeledInput
-        id={`${props.role}-birthday-location`}
-        label="Né(e) à"
-        type="text"
-        onInput={(e) => state.updateFormAndPdfInputs("birthdayLocation", e.target.value)}
-        value={state.birthdayLocation()}
-      />
-      <LabeledInput
-        id={`${props.role}-department-order`}
-        label="Département d'ordre"
-        type="text"
-        onInput={(e) => state.updateFormAndPdfInputs("orderDepartement", e.target.value)}
-        value={state.orderDepartement()}
-      />
-      <LabeledInput
-        id={`${props.role}-department-number-order`}
-        label="Numéro d'ordre"
-        type={config.orderNumberInputType}
-        onInput={(e) => state.updateFormAndPdfInputs("orderDepartmentNumber", e.target.value)}
-        value={state.orderDepartmentNumber()}
-      />
-      <LabeledInput
-        id={`${props.role}-address`}
-        label={config.addressLabel}
-        type="text"
-        onInput={(e) => state.updateFormAndPdfInputs("address", e.target.value)}
-        value={state.professionnalAddress()}
-      />
+      <div class="space-y-3.5">
+        <div>
+          <p class="font-[Nunito] text-[12.5px] font-bold text-slate-600 mb-1">Genre</p>
+          <PillRadioGroup
+            name={`${props.role}-gender`}
+            items={[
+              { id: `${props.role}-mister`, text: "Monsieur", value: GenderEnum.male },
+              { id: `${props.role}-miss`, text: "Madame", value: GenderEnum.female },
+            ]}
+            value={state.gender()}
+            onChange={(value) => state.updateFormAndPdfInputs("gender", value)}
+          />
+        </div>
+        <LabeledInput
+          id={`${props.role}-name`}
+          label="Nom, prénom"
+          type="text"
+          placeholder="Ex : Claire Fontan"
+          onInput={(e) => state.updateFormAndPdfInputs("name", e.target.value)}
+          value={state.name()}
+          variant="pro"
+        />
+        <LabeledInput
+          id={`${props.role}-mail`}
+          label="Email"
+          type="email"
+          placeholder="prenom.nom@email.com"
+          onInput={(e) => state.updateFormAndPdfInputs("email", e.target.value)}
+          value={state.email()}
+          variant="pro"
+        />
+        <div class="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
+          <LabeledInput
+            id={`${props.role}-birthday`}
+            label="Né(e) le"
+            type="date"
+            onInput={(e) => state.updateFormAndPdfInputs("birthday", e.target.value)}
+            value={state.birthday()}
+            variant="pro"
+          />
+          <LabeledInput
+            id={`${props.role}-birthday-location`}
+            label="Né(e) à"
+            type="text"
+            placeholder="Ex : Paris"
+            onInput={(e) => state.updateFormAndPdfInputs("birthdayLocation", e.target.value)}
+            value={state.birthdayLocation()}
+            variant="pro"
+          />
+        </div>
+        <div class="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
+          <LabeledInput
+            id={`${props.role}-department-order`}
+            label="Département d'ordre"
+            type="text"
+            placeholder="Ex : 75"
+            onInput={(e) => state.updateFormAndPdfInputs("orderDepartement", e.target.value)}
+            value={state.orderDepartement()}
+            variant="pro"
+          />
+          <LabeledInput
+            id={`${props.role}-department-number-order`}
+            label="Numéro d'ordre"
+            type={config.orderNumberInputType}
+            onInput={(e) => state.updateFormAndPdfInputs("orderDepartmentNumber", e.target.value)}
+            value={state.orderDepartmentNumber()}
+            variant="pro"
+          />
+        </div>
+        <LabeledInput
+          id={`${props.role}-address`}
+          label={config.addressLabel}
+          type="text"
+          onInput={(e) => state.updateFormAndPdfInputs("address", e.target.value)}
+          value={state.professionnalAddress()}
+          variant="pro"
+        />
+      </div>
     </DropdownItem>
   );
 }

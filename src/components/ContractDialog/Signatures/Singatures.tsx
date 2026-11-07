@@ -78,7 +78,8 @@ export function Signatures(props: AccordionFieldsProps) {
             valid={valid()}
         >
             <div class="flex flex-col gap-3">
-                <div class="flex justify-center sm:justify-between flex-wrap gap-1">
+                {/* Deux plaques côte à côte sur desktop, pilées sur mobile. */}
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <SignatureCanvas
                         type="replaced"
                         onEdit={handleEditSignature}

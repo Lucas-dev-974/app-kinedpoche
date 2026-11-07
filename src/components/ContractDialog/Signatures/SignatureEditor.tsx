@@ -117,9 +117,22 @@ export const SignatureEditor: Component<SignatureEditorProps> = (props) => {
                         class={SIGNATURE_CONFIG.CANVAS_CLASSES.EDITOR}
                     />
 
-                    <div class="flex justify-center md:justify-end gap-3">
-                        <Button text={SIGNATURE_LABELS.CLEAR} onClick={handleClear} />
-                        <Button text={SIGNATURE_LABELS.CANCEL} onClick={props.onClose} />
+                    {/* Hiérarchie : Effacer / Annuler en secondaire, Enregistrer en primaire. */}
+                    <div class="flex justify-end flex-wrap gap-2.5">
+                        <button
+                            type="button"
+                            onClick={handleClear}
+                            class="m-0 cursor-pointer rounded-[10px] border border-slate-300 bg-white px-3.5 py-2 font-[Nunito] text-[13px] font-bold text-slate-600 duration-150 hover:border-slate-400 hover:text-slate-700"
+                        >
+                            {SIGNATURE_LABELS.CLEAR}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={props.onClose}
+                            class="m-0 cursor-pointer rounded-[10px] border border-slate-300 bg-white px-3.5 py-2 font-[Nunito] text-[13px] font-bold text-slate-600 duration-150 hover:border-slate-400 hover:text-slate-700"
+                        >
+                            {SIGNATURE_LABELS.CANCEL}
+                        </button>
                         <Button text={SIGNATURE_LABELS.SAVE} onClick={handleSave} />
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 import { createSignal } from "solid-js";
 import { closeDialogTool, DIALOG_NAMES, DialogWrapper } from "../dialog/DialogWrapper";
-import { LabeledInput } from "../inputs/LabeledInput";
+import { LabeledInput, LABELED_INPUT_PRO } from "../inputs/LabeledInput";
+import { PillRadioGroup } from "../inputs/PillRadioGroup";
 import { AuthorsEnum, GenderEnum } from "../../utils/PDFTool";
 import { Button } from "../buttons/Button";
 import { UserEntity } from "../../models/user.entity";
@@ -11,14 +12,7 @@ import { formatDateForInput } from "../ContractDialog/DropdownContratInformation
 // Look pro du dialog : tokens statiques niveau module (aucune dépendance
 // réactive) — sections repérées par une pastille verte + titre uppercase
 // discret, libellés/entrées cohérents sur Nunito.
-const labelCls = "font-[Nunito] text-[12.5px] font-bold text-slate-600 mb-1";
-const inputCls = "w-full box-border rounded-[10px] border-slate-300 bg-white px-3 py-2 text-[14px] text-slate-800 shadow-sm duration-150 hover:border-slate-400 focus:border-[#099773] focus:outline-none focus:ring-2 focus:ring-[#099773]/25";
-const wrapperCls = "grid grid-cols-1 py-0";
 const sectionTitleCls = "m-0 mb-3 flex items-center gap-2 font-[Nunito] text-[11px] font-bold uppercase tracking-[0.09em] text-slate-400";
-const genderItems = [
-    { text: "Homme", value: "male", id: "genderM" },
-    { text: "Femme", value: "female", id: "genderF" },
-];
 
 export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
     let birthdayDate: Date | undefined = undefined;
@@ -133,36 +127,19 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
                         placeholder="Ex : Claire Fontan"
                         value={name()}
                         onInput={(e) => setName(e.target.value)}
-                        labelClass={labelCls}
-                        inputClass={inputCls}
-                        wrapperClass={wrapperCls}
+                        variant="pro"
                     />
                     <div>
-                        <p class={labelCls}>Genre</p>
-                        {/* Pills segmentées : radios natifs masqués (a11y conservée). */}
-                        <fieldset class="m-0 flex flex-wrap gap-2 border-none p-0">
-                            {genderItems.map((item) => (
-                                <label
-                                    for={item.id}
-                                    classList={{
-                                        "m-0 flex cursor-pointer select-none items-center rounded-full border px-4 py-1.5 font-[Nunito] text-[12.5px] font-bold duration-150": true,
-                                        "border-transparent bg-[#099773] text-white shadow-sm": gender() === item.value,
-                                        "border-slate-300 bg-white text-slate-600 hover:border-[#099773]/70 hover:text-[#099773]": gender() !== item.value,
-                                    }}
-                                >
-                                    <input
-                                        type="radio"
-                                        id={item.id}
-                                        name="gender"
-                                        class="sr-only"
-                                        value={item.value}
-                                        checked={gender() === item.value}
-                                        onChange={(e: Event) => setGender((e.target as HTMLInputElement).value as GenderEnum)}
-                                    />
-                                    {item.text}
-                                </label>
-                            ))}
-                        </fieldset>
+                        <p class={LABELED_INPUT_PRO.label}>Genre</p>
+                        <PillRadioGroup
+                            name="gender"
+                            items={[
+                                { id: "genderM", text: "Homme", value: "male" },
+                                { id: "genderF", text: "Femme", value: "female" },
+                            ]}
+                            value={gender()}
+                            onChange={(value) => setGender(value as GenderEnum)}
+                        />
                     </div>
                     <div class="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
                         <LabeledInput
@@ -171,9 +148,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
                             type="date"
                             value={birthday()}
                             onInput={(e) => setBirthday(e.target.value)}
-                            labelClass={labelCls}
-                            inputClass={inputCls}
-                            wrapperClass={wrapperCls}
+                            variant="pro"
                         />
                         <LabeledInput
                             id="bornLocation"
@@ -182,9 +157,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
                             placeholder="Ex : Paris"
                             value={bornLocation()}
                             onInput={(e) => setBornLocation(e.target.value)}
-                            labelClass={labelCls}
-                            inputClass={inputCls}
-                            wrapperClass={wrapperCls}
+                            variant="pro"
                         />
                     </div>
                 </div>
@@ -204,9 +177,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
                             type="number"
                             value={orderNumber().toString()}
                             onInput={(e) => setOrderNumber(Number(e.target.value))}
-                            labelClass={labelCls}
-                            inputClass={inputCls}
-                            wrapperClass={wrapperCls}
+                            variant="pro"
                         />
                         <LabeledInput
                             id="department"
@@ -215,9 +186,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
                             placeholder="Ex : 75"
                             value={department()}
                             onInput={(e) => setDepartment(e.target.value)}
-                            labelClass={labelCls}
-                            inputClass={inputCls}
-                            wrapperClass={wrapperCls}
+                            variant="pro"
                         />
                     </div>
                     <LabeledInput
@@ -227,9 +196,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
                         placeholder="prenom.nom@email.com"
                         value={email()}
                         onInput={(e) => setEmail(e.target.value)}
-                        labelClass={labelCls}
-                        inputClass={inputCls}
-                        wrapperClass={wrapperCls}
+                        variant="pro"
                     />
                 </div>
 
@@ -248,9 +215,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
                         placeholder="Ex : 12 rue de la Paix, 75002 Paris"
                         value={personalAdress()}
                         onInput={(e) => setPersonalAdress(e.target.value)}
-                        labelClass={labelCls}
-                        inputClass={inputCls}
-                        wrapperClass={wrapperCls}
+                        variant="pro"
                     />
                     <LabeledInput
                         id="officeAdress"
@@ -259,9 +224,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
                         placeholder="Cabinet, clinique…"
                         value={officeAdress()}
                         onInput={(e) => setOfficeAdress(e.target.value)}
-                        labelClass={labelCls}
-                        inputClass={inputCls}
-                        wrapperClass={wrapperCls}
+                        variant="pro"
                     />
                 </div>
             </div>

@@ -1,12 +1,14 @@
 export const SIGNATURE_CONFIG = {
-    PEN_COLOR: "rgb(66, 133, 244)",
+    // Encre neutre (ardoise foncé) : signature type document officiel ;
+    // le bleu Google d'origine était hors charte.
+    PEN_COLOR: "rgb(30, 41, 59)",
     CANVAS_CLASSES: {
         DISPLAY: "bg-slate-300 w-full mx-auto",
-        EDITOR: "border border-slate-300 rounded-md w-full h-[40vh] mx-auto",
+        EDITOR: "border border-slate-300 rounded-[10px] w-full h-[40vh] mx-auto",
     },
     CONTAINER_CLASSES: {
-        CANVAS: "relative group w-full ",
-        BUTTON: "absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/40 text-white font-medium",
+        CANVAS: "relative group w-full overflow-hidden rounded-[10px] ring-1 ring-slate-200",
+        BUTTON: "absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/40 text-white font-[Nunito] text-[13px] font-bold",
     },
 } as const;
 
