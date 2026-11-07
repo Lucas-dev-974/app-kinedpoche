@@ -6,7 +6,13 @@ import { PDFTool } from "../../utils/PDFTool";
 import { loadContract, signeBack } from "../../const.data";
 
 
-export function EditContractDialog() {
+interface EditContractDialogProps {
+  /** Quand true, seuls les dialogs sont rendus : le déclencheur est un CTA
+      externe (Home) qui appelle openDialogTool(DIALOG_NAMES.editContract). */
+  hideTriggerButton?: boolean;
+}
+
+export function EditContractDialog(props: EditContractDialogProps) {
   function title() {
     if (signeBack()) {
       return "Signer un contrat";
@@ -21,6 +27,7 @@ export function EditContractDialog() {
       name="editContract"
       btnText="Créer un contrat"
       title={title()}
+      hideTriggerButton={props.hideTriggerButton}
     >
       <div class="max-h-[70vh]">
         <Show when={currentPDFTool() instanceof PDFTool}>

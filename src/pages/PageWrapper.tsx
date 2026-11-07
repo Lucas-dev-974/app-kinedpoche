@@ -13,6 +13,9 @@ import storeService from "../utils/store.service";
 
 interface PageWrapperProps {
     children: JSXElement;
+    /** Landing pleine largeur (Home) : la page gère ses propres containers
+        (max-w-[430px] téléphone-first) au lieu de la contrainte lg:w-2/4. */
+    wide?: boolean;
 }
 
 export function PageWrapper(props: PageWrapperProps) {
@@ -58,7 +61,7 @@ export function PageWrapper(props: PageWrapperProps) {
             <Navbar />
             <FloatingMenu />
             <Notification />
-            <div class="md:px-20 lg:w-2/4 mx-auto px-4 ">
+            <div class={props.wide ? "" : "md:px-20 lg:w-2/4 mx-auto px-4 "}>
                 {childs()}
             </div>
         </div>

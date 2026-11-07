@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal, Show } from "solid-js";
 import { DialogWrapper } from "../DialogWrapper";
 import { UserMenuButton } from "../../navbar/user-menu/UserMenuButton";
 import { Portal } from "solid-js/web";
@@ -6,8 +6,13 @@ import { Button } from "../../buttons/Button";
 import { mailService } from "../../../services/mail.service";
 import { NotificationService } from "../../../utils/notification.service";
 
-export function ReportBugDialog() {
-    const [isOpen, setIsOpen] = createSignal(false);
+// État au niveau module : n'importe quel composant (footer Home, menu user)
+// peut ouvrir le dialog via setReportBugOpen(true). Le composant est monté
+// en permanence dans UserMenuDialog (Portal rend l'overlay au niveau du body).
+const [isOpen, setIsOpen] = createSignal(false);
+export const setReportBugOpen = setIsOpen;
+
+export function ReportBugDialog(props: { hideTriggerButton?: boolean }) {
     const [reportContent, setReportContent] = createSignal("");
     const [screenshots, setScreenshots] = createSignal<File[]>([]);
     const [isLoading, setIsLoading] = createSignal(false);
@@ -64,10 +69,14 @@ export function ReportBugDialog() {
 
     return (
         <div>
-            <UserMenuButton
-                text="Signaler un bug"
-                onClick={() => setIsOpen(true)}
-            />
+            {/* Déclencheur optionnel : les item menus (UserMenuDialog, footer Home)
+                ouvrent via setReportBugOpen(true) et cachent ce bouton. */}
+            <Show when={!props.hideTriggerButton}>
+                <UserMenuButton
+                    text="Signaler un bug"
+                    onClick={() => setIsOpen(true)}
+                />
+            </Show>
             <Portal>
                 <DialogWrapper
                     name="reportBugDialog"
