@@ -1,7 +1,7 @@
 {
-  "name": "kine-d-poche",
+  "name": "app-kinedpoche",
   "version": "0.0.1",
-  "description": "A starter kit for building PWAs!",
+  "description": "Kiné de poche — création et signature de contrats entre kinésithérapeutes",
   "main": "index.js",
   "scripts": {
     "dev-server": "vite --open",
@@ -15,11 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@shoelace-style/shoelace": "^2.18.0",
     "@solidjs/router": "^0.15.3",
-    "@thepassle/app-tools": "^0.9.12",
-    "lit": "^3.2.1",
-    "multer": "^2.1.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^4.7.76",
     "signature_pad": "^5.1.1",
@@ -27,14 +23,14 @@
     "solid-js": "^1.9.9",
     "solid-meta": "^0.28.1",
     "urlpattern-polyfill": "^10.0.0",
-    "workbox-build": "^7.3.0",
-    "workbox-core": "^7.3.0",
-    "workbox-precaching": "^7.3.0"
+    "workbox-build": "^7.3.0"
   },
   "devDependencies": {
-    "@types/multer": "^2.1.0",
     "@types/node": "^25.4.0",
     "@types/pdfjs-dist": "^2.10.377",
+    "autoprefixer": "^10.6.2",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^3.4.19",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
     "vite-plugin-pwa": "^0.20.5",

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
   <meta charset="utf-8" />
@@ -10,7 +10,7 @@
   <!-- This meta viewport ensures the webpage's dimensions change according to the device it's on. This is called Responsive Web Design.-->
   <meta name="viewport"
     content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-  <meta name="description" content="This is a kine-d-poche app" />
+  <meta name="description" content="Kiné de poche — création et signature de contrats entre kinésithérapeutes" />
 
   <!-- <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#181818" />
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f3f3" /> -->
@@ -19,9 +19,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="kine-d-poche" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-
-  <!-- This tag is used by the kine-d-poche CLI to identify template projects. Don't remove if you are using the CLI. -->
-  <meta name="pwa-starter-template-identity" content="pwa-starter"/>
 
   <!-- Imports an icon to represent the document. -->
   <link rel="icon" href="/assets/icons/512x512.png" type="image/png" />
@@ -33,31 +30,9 @@
    <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Arimo:ital,wght@0,400..700;1,400..700&family=Lexend:wght@100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'app-primary': '#E1477E',
-            'app-secondary': '#f3f3f3',
-            'app-accent': '#0078d4'
-          }
-        }
-      },
-      // Configuration pour Shadow DOM
-      corePlugins: {
-        preflight: false, // Désactive le reset CSS qui peut causer des conflits
-      }
-    }
-  </script>
-
-
-  <script type="module">
-    import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
-    setBasePath('https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.16.0/cdn/');
-  </script>
+  <!-- Tailwind est désormais généré au build (tailwind.config.js + postcss.config.js,
+       audit propreté 07/11 P1) — fin du Play CDN runtime (prod non supportée,
+       styles perdus hors-ligne). -->
   <link rel="stylesheet" href="/src/styles/global.css">
 </head>
 
