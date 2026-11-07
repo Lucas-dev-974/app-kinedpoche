@@ -1,7 +1,5 @@
 import { createSignal, JSX } from "solid-js";
 
-import "./Dropdown.css";
-
 type AccordionWrapperProps = {
   multiple?: boolean; // Permet plusieurs panneaux ouverts simultanément
   /**
@@ -41,5 +39,11 @@ export function DropdownWrapper(
     });
   }
 
-  return <div class="w-full  mx-auto border border-solid border-gray-300 rounded overflow-hidden">{props.children(toggleItem, items)}</div>;
+  return (
+    // Wrapper neutre : carte blanche arrondie à ring fin ; chaque DropdownItem
+    // dessine son propre séparateur.
+    <div class="w-full mx-auto overflow-hidden rounded-[14px] bg-white ring-1 ring-slate-200">
+      {props.children(toggleItem, items)}
+    </div>
+  );
 }

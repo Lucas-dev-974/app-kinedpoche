@@ -75,21 +75,35 @@ export function CTAPDFViewer() {
     }
 
 
-    return <div class="flex justify-end items-center gap-2 my-2">
-        <Button
-            onClick={downloadPDF}
-            text="Télécharger le PDF modifié"
-            size="xs"
-            icon={<VsFilePdf size={19} />}
-        />
+    // Barre d'actions fixe (footer du dialog) : hiérarchie claire — aperçu et
+    // téléchargement en secondaire, sauvegarde en primaire. Boutons désactivés
+    // tant que le PDFTool n'est pas prêt (mount async), garde interne conservée.
+    const toolReady = () => !!currentPDFTool();
 
-        <Button
-            onClick={saveContractInDB}
-            text="Sauvegarder le PDF modifié"
-            size="xs"
-            icon={<FiSave size={19} />}
-            disabled={isSaving()}
-        />
-        <PDFViewerPrevisualisationDialog />
-    </div>
+    const ghostBtn =
+        "m-0 flex cursor-pointer items-center gap-2 rounded-[10px] border border-slate-300 "
+        + "bg-white px-3.5 py-2 font-[Nunito] text-[13px] font-bold text-slate-600 duration-150 "
+        + "hover:border-slate-400 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50";
+
+    return (
+        <div class="flex w-full box-border flex-none flex-wrap items-center justify-end gap-2.5 border-t border-slate-100 bg-slate-50 px-4 py-3 sm:px-5">
+            {/* Le déclencheur d'aperçu (état open) reste dans PDFViewerPrevisualisationDialog */}
+            <PDFViewerPrevisualisationDialog />
+            <button
+                onClick={downloadPDF}
+                class={ghostBtn}
+                disabled={!toolReady()}
+                title="Télécharger le PDF avec vos signatures"
+            >
+                <VsFilePdf size={16} />
+                Télécharger
+            </button>
+            <Button
+                onClick={saveContractInDB}
+                text={isSaving() ? "Sauvegarde..." : "Sauvegarder"}
+                icon={<FiSave size={16} />}
+                disabled={isSaving() || !toolReady()}
+            />
+        </div>
+    );
 }

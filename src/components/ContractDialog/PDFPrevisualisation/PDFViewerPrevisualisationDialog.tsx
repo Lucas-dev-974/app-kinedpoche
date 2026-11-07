@@ -1,16 +1,26 @@
 import { createSignal, Show } from "solid-js"
 import { Portal } from "solid-js/web"
 import { AiTwotoneEye } from 'solid-icons/ai'
-import { Button } from "../../buttons/Button"
 import { PDFCanvas } from "../../ContractEditor/PDFCanvas"
 import { SendContractTo } from "./SendContractTo"
+import { currentPDFTool } from "../../ContractEditor/PDFEditor"
 
 export function PDFViewerPrevisualisationDialog() {
     const [open, setOpen] = createSignal(false)
 
 
     return <>
-        <Button onClick={() => setOpen(!open())} icon={<AiTwotoneEye />} text="ouvrir" />
+        {/* Déclencheur secondaire (ghost) : cohérent avec le footer du dialog
+            contrat ; désactivé tant que le PDFTool n'est pas prêt. */}
+        <button
+            onClick={() => setOpen(!open())}
+            disabled={!currentPDFTool()}
+            title="Prévisualiser le contrat rempli"
+            class="m-0 flex cursor-pointer items-center gap-2 rounded-[10px] border border-slate-300 bg-white px-3.5 py-2 font-[Nunito] text-[13px] font-bold text-slate-600 duration-150 hover:border-slate-400 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+            <AiTwotoneEye size={16} />
+            Aperçu
+        </button>
 
         <Show when={open()}>
             <Portal>

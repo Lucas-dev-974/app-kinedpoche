@@ -20,13 +20,14 @@ export function ContratInformationsDropdowns() {
 
   return (
     // ids explicites : 1=Replacé, 2=Remplaçant, 3=Informations, 4=Signatures
-    // (les DropdownItem font .find(id === N) — l'ordre du tableau n'importe pas)
+    // (les DropdownItem font .find(id === N) — l'ordre du tableau n'importe pas).
+    // Ordre de rendu aligné sur les ids : les puces numérotées se lisent 1 → 4.
     <DropdownWrapper multiple={true} itemsConfig={[{ id: 1, isOpen: false }, { id: 2, isOpen: false }, { id: 3, isOpen: false }, { id: 4, isOpen: false }]}>
       {(toggleItem, items) => (
         <>
-          <ContractInformationsFields items={items} toggleItem={toggleItem} />
           <KineFields role="replaced" items={items} toggleItem={toggleItem} />
           <KineFields role="substitute" items={items} toggleItem={toggleItem} />
+          <ContractInformationsFields items={items} toggleItem={toggleItem} />
           <Signatures items={items} toggleItem={toggleItem} />
         </>
       )}

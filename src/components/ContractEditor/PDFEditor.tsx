@@ -1,5 +1,4 @@
 import { createSignal, onMount, onCleanup } from "solid-js";
-import { CTAPDFViewer } from "./CTAPDFViewer";
 import { PDFTool } from "../../utils/PDFTool";
 
 export const [currentPDFTool, setCurrentPDFTool] = createSignal<PDFTool>();
@@ -24,5 +23,8 @@ export function PDFEditor() {
     setCurrentPDFTool(undefined);
   });
 
-  return <CTAPDFViewer />;
+  // Rendu vide : l'UI d'actions (CTAPDFViewer) vit dans le footer du dialog,
+  // le PDF lui-même dans le dialog de prévisualisation. PDFEditor ne gère que
+  // le cycle de vie du PDFTool.
+  return null;
 }

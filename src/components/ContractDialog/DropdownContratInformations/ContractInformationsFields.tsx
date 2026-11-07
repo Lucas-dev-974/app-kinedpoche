@@ -14,19 +14,7 @@ interface ContractInformationsFieldsProps {
   items: DorpdownItemType[] | (() => DorpdownItemType[]);
 }
 
-export const formatDate = (date: string | undefined | null) => {
-  if (!date) {
-    return "";
-  }
-
-  const parsed = new Date(date);
-
-  if (isNaN(parsed.getTime())) {
-    return "";
-  }
-
-  return parsed.toLocaleDateString("fr-FR");
-}
+export { formatDate } from "../../../utils/formatDate";
 
 
 export function ContractInformationsFields(props: ContractInformationsFieldsProps) {

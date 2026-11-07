@@ -1,7 +1,7 @@
 import { createSignal, onCleanup } from "solid-js"
 import { currentPDFTool } from "./PDFEditor"
 import { PDFFields } from "../../utils/PDFTool";
-import { formatDate } from "../ContractDialog/DropdownContratInformations/ContractInformationsFields";
+import { formatDate } from "../../utils/formatDate";
 import { DATE_FIELD_IDS, A4_PDF_DIMENSIONS } from "../../utils/pdf-field-mapping.config";
 
 export const [canvasInputs, setCanvasInputs] = createSignal<PDFFields[]>([]);

@@ -2,7 +2,7 @@ import { PDFDocument } from "pdf-lib";
 import * as pdfjsLib from "pdfjs-dist";
 import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-import { formatDate } from "../components/ContractDialog/DropdownContratInformations/ContractInformationsFields";
+import { formatDate } from "./formatDate";
 import { RenderParameters } from "pdfjs-dist/types/src/display/api";
 import { ContractEntity } from "../models/contract.entity";
 import { Accessor } from "solid-js";
