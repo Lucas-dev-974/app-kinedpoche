@@ -8,6 +8,12 @@ interface LabeledInputProps {
   required?: boolean;
 
   onInput?: (e: Event & { target: any & { value: string } }) => void;
+
+  /** Classes additives (look pro des dialogs form) : s'ajoutent aux défauts. */
+  labelClass?: string;
+  inputClass?: string;
+  /** Classes du wrapper : REMPLACENT "grid grid-cols-1 form-input py-1". */
+  wrapperClass?: string;
 }
 
 export function LabeledInput(props: LabeledInputProps) {
@@ -24,11 +30,11 @@ export function LabeledInput(props: LabeledInputProps) {
   }
 
   return (
-    <div class={"grid grid-cols-1 form-input py-1"}>
-      <label class="font-[Nunito]" for={props.id}>{props.label}</label>
+    <div class={props.wrapperClass ?? "grid grid-cols-1 form-input py-1"}>
+      <label class={"font-[Nunito] " + (props.labelClass ?? "")} for={props.id}>{props.label}</label>
       <input
         ref={inputRef}
-        class="border border-gray-300 rounded-lg md:py-2 px-3 bg-transparent shadow-sm focus:outline-none resize-none outline-none font-[Nunito] text-base"
+        class={"border border-gray-300 rounded-lg md:py-2 px-3 bg-transparent shadow-sm focus:outline-none resize-none outline-none font-[Nunito] text-base " + (props.inputClass ?? "")}
         type={props.type}
         id={props.id}
         name={props.id}

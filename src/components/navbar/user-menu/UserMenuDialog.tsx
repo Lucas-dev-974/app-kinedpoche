@@ -55,6 +55,14 @@ export function UserMenuDialog(props: UserMenuDialogProps) {
     onCleanup(() => document.removeEventListener("click", handler));
   });
 
+  // Ouvre un dialog et referme le menu : le panel burger ne doit jamais
+  // rester devant l'overlay/dialog modal (couches : page ≤ z-150, menu
+  // z-199, dialogs z-200, notification z-500).
+  const openAndClose = (open: () => void) => () => {
+    onCloseLatest();
+    open();
+  };
+
   const user = () => storeService.proxy.user;
   const displayName = () => user()?.fullname?.trim() || "Votre profil";
   const sub = () => {
@@ -68,7 +76,7 @@ export function UserMenuDialog(props: UserMenuDialogProps) {
     <div
       ref={setDialogHtml}
       class={
-        "absolute right-0 top-[54px] z-[201] w-[264px] rounded-[16px] p-1.5 text-white "
+        "absolute right-0 top-[54px] z-[199] w-[264px] rounded-[16px] p-1.5 text-white "
         + " origin-top-right transition duration-150 ease-out "
       }
       style={{
@@ -117,12 +125,12 @@ export function UserMenuDialog(props: UserMenuDialogProps) {
       <MenuItem
         icon={<HiOutlineDocumentText size={18} />}
         text="Mes informations"
-        onClick={() => openDialogTool(DIALOG_NAMES.registerInformations)}
+        onClick={openAndClose(() => openDialogTool(DIALOG_NAMES.registerInformations))}
       />
       <MenuItem
         icon={<HiOutlineFlag size={18} />}
         text="Signaler un bug"
-        onClick={() => setReportBugOpen(true)}
+        onClick={openAndClose(() => setReportBugOpen(true))}
       />
 
       <div class="mx-2 my-1 h-[1.5px] bg-white/25" />

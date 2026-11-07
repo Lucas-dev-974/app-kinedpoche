@@ -13,6 +13,14 @@ interface DialogWrapperProps {
   name: string;
   btnText: string;
   title: string;
+  /** Optionnel : sous-titre rendu sous le title dans l'entête. */
+  subtitle?: string;
+  /** Optionnel : zone d'actions rendue SOUS le body scrollable (non scrollée). */
+  footer?: JSX.Element;
+  /** Optionnel : classes du DialogContainer (remplacent les défauts). */
+  containerClassName?: string;
+  /** Optionnel : classes du body scrollable (remplacent les défauts). */
+  bodyClassName?: string;
   isInNavbar?: boolean;
   /**
    * When provided, the dialog becomes controlled from the outside.
@@ -120,11 +128,12 @@ export function DialogWrapper(props: DialogWrapperProps) {
       </Show>
       <Show when={isOpen()} fallback={null}>
         <Overlay onClick={closeDialogTool} show={isOpen()} />
-        <DialogContainer>
-          <DialgoHeader title={props.title} onClose={closeDialogTool} />
-          <div class="overflow-y-auto py-5 px-4" style={{ "-webkit-overflow-scrolling": "touch" }}>
+        <DialogContainer className={props.containerClassName}>
+          <DialgoHeader title={props.title} onClose={closeDialogTool} subtitle={props.subtitle} />
+          <div class={props.bodyClassName ?? "overflow-y-auto py-5 px-4"} style={{ "-webkit-overflow-scrolling": "touch" }}>
             {props.children}
           </div>
+          <Show when={props.footer}>{props.footer}</Show>
         </DialogContainer>
       </Show>
     </>
