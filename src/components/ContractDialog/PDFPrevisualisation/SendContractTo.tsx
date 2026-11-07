@@ -1,8 +1,7 @@
-import { createSignal, createEffect, on, Setter } from "solid-js"
+import { createSignal, Setter } from "solid-js"
 import { mailService } from "../../../services/mail.service"
 import { Button } from "../../buttons/Button"
 import { currentPDFTool } from "../../ContractEditor/PDFEditor"
-import { toSendBlob, setToSendBlob } from "../../../utils/PDFTool"
 import { LabeledInput } from "../../inputs/LabeledInput"
 import { NotificationService } from "../../../utils/notification.service"
 import { LabeledTextarea } from "../../inputs/LabeledTextarea"
@@ -86,38 +85,15 @@ export function SendContractTo(props: {
 
         setIsLoading(true)
         try {
-            // Générer le PDF avec les signatures — la promesse résout à la fin du
-            // travail réel (reader.onload), pas après l'ouverture du lecture de fichier.
-            await pdfTool.downloadModifiedPdfWithStoredSignatures(pdfTool.pdfFile, false)
-        } catch (error) {
-            if (import.meta.env.DEV) {
-                console.error("Erreur lors de la génération du PDF:", error);
-            }
-            NotificationService.push({
-                content: "Erreur lors de la génération du PDF",
-                type: "error"
-            })
-        } finally {
-            setIsLoading(false)
-        }
-    }
+            // Flux direct (audit propreté 07/11 P5) : l'ancienne chaîne passait
+            // par le signal global toSendBlob surveillé par un createEffect —
+            // un effet déclenché sur TOUTE écriture du signal, qui revalidait
+            // le formulaire (double validation/notifications) et ne purgeait
+            // pas le blob si ses conditions échouaient.
+            const blob = await pdfTool.downloadModifiedPdfWithStoredSignatures(pdfTool.pdfFile, false)
 
-    const buildFormData = (): FormData => {
-        const form = new FormData()
-        form.append("contractFile", toSendBlob() as Blob, "contrat.pdf")
-        form.append("from", mailFrom())
-        form.append("to", mailTo())
-        form.append("body", mailBody())
-        const contractData = currentPDFTool()?.contractData ?? {}
-        form.append("contractData", JSON.stringify(contractData))
-        return form
-    }
-
-    // * Send the request in a createEffect cause we must wait the blob to be generated before sending the request
-    createEffect(on(toSendBlob, async () => {
-        if (toSendBlob() && currentPDFTool() && mailFrom() && mailTo() && validateForm()) {
             try {
-                const response: ResponseTypeSendContractTo = await mailService.sendContratTo(buildFormData())
+                const response: ResponseTypeSendContractTo = await mailService.sendContratTo(buildFormData(blob))
                 if (response.creatingContract?.contract) {
                     const contract = response.creatingContract.contract
                     currentPDFTool()?.setContractData(contract)
@@ -136,14 +112,30 @@ export function SendContractTo(props: {
                     content: "Erreur lors de l'envoi du contrat",
                     type: "error"
                 })
-            } finally {
-                // F4 : purger le blob global après l'envoi — au prochain tentatif,
-                // il ne peut plus contenir le PDF d'un envoi précédent.
-                setToSendBlob(undefined)
-                setIsLoading(false)
             }
+        } catch (error) {
+            if (import.meta.env.DEV) {
+                console.error("Erreur lors de la génération du PDF:", error);
+            }
+            NotificationService.push({
+                content: "Erreur lors de la génération du PDF",
+                type: "error"
+            })
+        } finally {
+            setIsLoading(false)
         }
-    }))
+    }
+
+    const buildFormData = (blob: Blob): FormData => {
+        const form = new FormData()
+        form.append("contractFile", blob, "contrat.pdf")
+        form.append("from", mailFrom())
+        form.append("to", mailTo())
+        form.append("body", mailBody())
+        const contractData = currentPDFTool()?.contractData ?? {}
+        form.append("contractData", JSON.stringify(contractData))
+        return form
+    }
 
     return (
         <div class="space-y-6">
@@ -158,7 +150,7 @@ export function SendContractTo(props: {
                 <LabeledInput
                     id="mailFrom"
                     label="Votre email"
-                    type="mail"
+                    type="email"
                     value={mailFrom()}
                     onInput={(e) => { setMailFrom(e.target.value) }}
                 />
@@ -166,14 +158,14 @@ export function SendContractTo(props: {
                 <LabeledInput
                     id="mailTo"
                     label="Email destinataire"
-                    type="mail"
+                    type="email"
                     value={mailTo()}
                     onInput={(e) => { setMailTo(e.target.value) }}
                 />
 
                 <LabeledTextarea
                     id="mailBody"
-                    label="Corp de l'email"
+                    label="Corps de l'email"
                     value={mailBody()}
                     onInput={(value) => { setMailBody(value) }}
                 />

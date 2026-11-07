@@ -5,7 +5,7 @@ interface OutlinedButtonProps {
     icon?: JSXElement;
     onClick: () => void;
     class?: string;
-    size?: "xs" | "small" | "medium" | "large" | "responsive" | "full-mobile";
+    size?: "xs" | "small" | "medium" | "large";
     subText?: string;
     type?: "button" | "submit" | "reset";
 }
@@ -35,7 +35,10 @@ export function OutlinedButton(props: OutlinedButtonProps) {
             onClick={props.onClick}
             type={props.type ?? "button"}
         >
-            <p class="m-0"> {props.icon ? props.icon : props.text}</p>
+            <div class="flex items-center gap-2">
+                {props.icon ? props.icon : null}
+                <p class="m-0">{props.text}</p>
+            </div>
             {props.subText ? <p class="text-xs text-gray-500 m-0">{props.subText}</p> : null}
         </button>
     );

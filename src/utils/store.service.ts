@@ -19,10 +19,11 @@ export const EMPTY_USER: UserEntity = {
   email: "",
   orderNumber: 0,
   department: "",
-  birthday: new Date(0),
   bornLocation: "",
   personalAdress: "",
   officeAdress: "",
+  // birthday optional : jamais de 01/01/1970 sérialisé quand le champ est vide
+  // (audit propreté 07/11 — UserEntity.birthday est désormais optionnel)
   // On utilise les valeurs string brutes pour éviter une dépendance circulaire avec PDFTool (où les enums sont définis).
   gender: "male" as any,
   status: "professionnal" as any,

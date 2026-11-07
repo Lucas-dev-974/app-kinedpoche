@@ -44,7 +44,7 @@ export function LoginCard() {
       <TitleForm title="Se connecter" />
 
       <div class="flex flex-col gap-2 p-6">
-        <LabeledInput label="email" type="mail" onInput={() => { }} id="email" required />
+        <LabeledInput label="email" type="email" onInput={() => { }} id="email" required />
         <LabeledInput label="mot de passe" type="password" onInput={() => { }} id="password" required />
         <p class="text-sm text-gray-500 cursor-pointer -translate-y-5">mot de passe oublié ? </p>
         <div class="flex justify-end">

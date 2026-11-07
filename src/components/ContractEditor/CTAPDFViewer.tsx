@@ -35,7 +35,7 @@ export function CTAPDFViewer() {
                 pdfTool.setContractData(contract);
                 storeService.proxy.contracts = [...(storeService.proxy.contracts ?? []), contract]
                 NotificationService.push({
-                    content: "Contrat sauvegarder",
+                    content: "Contrat sauvegardé",
                     type: "info",
                 });
             } else {

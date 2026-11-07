@@ -90,7 +90,7 @@ export function PDFInputsOnCanvas() {
             const position = getAdjustedPosition(field);
             return (
                 <input
-                    class={" border-none inset-0 overflow-visible outline-none bgz-blue-500"}
+                    class={" border-none inset-0 overflow-visible outline-none"}
                     type="text"
                     value={parseDisplayData(field)}
                     onInput={(e) => currentPDFTool()!.updateContractDataAndPDFFields(field.id, e.target.value)}

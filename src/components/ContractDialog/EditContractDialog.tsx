@@ -11,9 +11,9 @@ export function EditContractDialog() {
     if (signeBack()) {
       return "Signer un contrat";
     } else if (loadContract()) {
-      return "Mettre à jour  un contrat";
+      return "Mettre à jour un contrat";
     } else {
-      return "Edité un nouveau contrat";
+      return "Éditer un nouveau contrat";
     }
   }
   return (

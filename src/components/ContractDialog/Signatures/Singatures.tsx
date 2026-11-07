@@ -1,6 +1,6 @@
 import { createSignal, onCleanup, onMount } from "solid-js";
 import { DropdownItem } from "../../Dropdown/DropdownItem";
-import { AccordionFieldsProps } from "../DropdownContratInformations/ReplacedFields";
+import { AccordionFieldsProps } from "../DropdownContratInformations/KineFields";
 import { SignatureCanvas } from "./SignatureCanvas";
 import { SignatureEditor } from "./SignatureEditor";
 import { SignatureData, SignatureType } from "./types";

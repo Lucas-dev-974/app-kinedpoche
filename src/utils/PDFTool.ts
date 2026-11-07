@@ -5,13 +5,11 @@ import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { formatDate } from "../components/ContractDialog/DropdownContratInformations/ContractInformationsFields";
 import { RenderParameters } from "pdfjs-dist/types/src/display/api";
 import { ContractEntity } from "../models/contract.entity";
-import { Accessor, createSignal } from "solid-js";
+import { Accessor } from "solid-js";
 import { loadContract } from "../const.data";
 import { DATE_FIELD_IDS, A4_PDF_DIMENSIONS, A4_CANVAS_FALLBACK, getPDFIdsForField, getContractFieldForPDFId } from "./pdf-field-mapping.config";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc as unknown as string;
-
-export const [toSendBlob, setToSendBlob] = createSignal<Blob | undefined>()
 
 export enum GenderEnum {
   male = "male",
@@ -422,16 +420,23 @@ export class PDFTool {
    * @param pdfFile Le fichier PDF à télécharger
    * @param download True si le PDF doit être téléchargé, false sinon
    */
-  async downloadModifiedPdfWithStoredSignatures(pdfFile: File, download: boolean = true): Promise<void> {
+  async downloadModifiedPdfWithStoredSignatures(pdfFile: File, download: boolean = true): Promise<Blob> {
     // F4 : le vrai travail vit dans reader.onload — l'ancienne version laissait
     // le `await` de l'appelant se résoudre avant la fin réelle (et chaque erreur
     // intérieure devenait une unhandled rejection : isLoading figé à true,
     // bouton gelé, aucune notification).
-    return new Promise<void>((resolve, reject) => {
+    // Audit propreté 07/11 (P5) : la méthode RETOURNE désormais le blob — fini
+    // le signal global toSendBlob qu'un createEffect extérieur surveillait.
+    return new Promise<Blob>((resolve, reject) => {
       const reader = new FileReader();
 
       reader.onload = () => {
-        this.setFormAndSignaturesIntoPdf(reader.result as ArrayBufferLike, download).then(resolve, reject);
+        this.setFormAndSignaturesIntoPdf(reader.result as ArrayBufferLike).then((blob) => {
+          if (download) {
+            this.triggerBrowserDownload(blob);
+          }
+          resolve(blob);
+        }, reject);
       };
 
       reader.onerror = () => reject(reader.error ?? new Error("Lecture du fichier PDF impossible"));
@@ -439,8 +444,18 @@ export class PDFTool {
     });
   }
 
+  /** Téléchargement navigateur du PDF généré */
+  private triggerBrowserDownload(blob: Blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "contrat.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   /** Insère signatures + valeurs de champs dans le PDF et produit le blob final */
-  private async setFormAndSignaturesIntoPdf(pdfData: ArrayBufferLike, download: boolean) {
+  private async setFormAndSignaturesIntoPdf(pdfData: ArrayBufferLike): Promise<Blob> {
       const pdfUint8Array = new Uint8Array(pdfData);
       const pdfDoc_ = await PDFDocument.load(pdfUint8Array);
 
@@ -552,22 +567,10 @@ export class PDFTool {
         }
       }
 
-      // Générer et télécharger le PDF
+      // Générer le PDF final — le blob est retourné à l'appelant
+      // (plus de signal global ni de téléchargement DOM caché ici).
       const modifiedPdfBytes = await pdfDoc_.save();
-      const blob = new Blob([modifiedPdfBytes as BlobPart], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-
-      a.href = url;
-      if (download) {
-
-        a.download = "contrat.pdf";
-        a.click();
-
-        URL.revokeObjectURL(url);
-      } else {
-        setToSendBlob(blob)
-      }
+      return new Blob([modifiedPdfBytes as BlobPart], { type: "application/pdf" });
   }
 
   setCurrentPage(page: number) {

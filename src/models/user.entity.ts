@@ -6,7 +6,7 @@ export type UserEntity = {
   email: string;
   orderNumber?: number;
   department: string;
-  birthday: Date;
+  birthday?: Date;
   bornLocation: string;
   password?: string;
 

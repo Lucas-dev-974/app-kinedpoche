@@ -66,7 +66,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
             email: email(),
             orderNumber: orderNumber(),
             department: department(),
-            birthday: birthdayDate ?? new Date(0),
+            birthday: birthdayDate,
             bornLocation: bornLocation(),
             personalAdress: personalAdress(),
             officeAdress: officeAdress(),

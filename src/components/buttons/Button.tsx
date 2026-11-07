@@ -5,7 +5,7 @@ interface ButtonProps {
   icon?: JSXElement;
   onClick: () => void;
   class?: string;
-  size?: "xs" | "small" | "medium" | "large" | "responsive" | "full-mobile";
+  size?: "xs" | "small" | "medium" | "large";
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
   bgGradientStyle?: "right" | "left";

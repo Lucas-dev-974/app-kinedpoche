@@ -19,19 +19,6 @@ export function HeroSection() {
             <span class="my-2" />
             <Show when={!loggedIn()}>
                 <div class="flex flex-wrap gap-3 w-full justify-center md:justify-start">
-                    {/* <Button
-                        bgGradientStyle="right"
-                        text="Je souhaite rejoindre"
-                        onClick={() => navigate("/register")}
-                        size="full-mobile" class="w-full" />
-                    <Button
-                        text="Je souhaite me connecter"
-                        onClick={() => navigate("/login")}
-                        size="full-mobile" class="w-full" />
-                                      <Button
-                        text="Je souhaite me connecter"
-                        onClick={() => navigate("/login")}
-                        size="full-mobile" class="w-full" /> */}
                     <Show when={!storeService.data.user || storeService.data.user.email === ""}>
                         <RegisterInformationsInLocal />
                     </Show>

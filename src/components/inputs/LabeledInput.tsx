@@ -1,7 +1,7 @@
 interface LabeledInputProps {
   id: string;
   label: string;
-  type: "text" | "mail" | "date" | "number" | "password" | "textarea";
+  type: "text" | "email" | "date" | "number" | "password" | "textarea";
   placeholder?: string;
 
   value?: string | Date;
@@ -28,7 +28,7 @@ export function LabeledInput(props: LabeledInputProps) {
       <label class="font-[Nunito]" for={props.id}>{props.label}</label>
       <input
         ref={inputRef}
-        class="border border-gray-300 rounded-lg md:py-2 px-3 bg-transparent shadow-sm focus:outline-none resize-none outline-none font-[Nunito] text-base min-h-[px] sm:min-h-0"
+        class="border border-gray-300 rounded-lg md:py-2 px-3 bg-transparent shadow-sm focus:outline-none resize-none outline-none font-[Nunito] text-base"
         type={props.type}
         id={props.id}
         name={props.id}

@@ -1,12 +1,9 @@
 import { DropdownWrapper } from "../../Dropdown/DropdownWrapper";
 import { ContractInformationsFields } from "./ContractInformationsFields";
-import { setIsFilledWithUserSubstitute, SubstituteFields } from "./SubstituteFields";
-import { ReplacedFields, setIsFilledWithUserReplaced } from "./ReplacedFields";
-import { createSignal, onCleanup } from "solid-js";
+import { KineFields, setIsFilledWithUserReplaced, setIsFilledWithUserSubstitute } from "./KineFields";
+import { onCleanup } from "solid-js";
 import { Signatures } from "../Signatures/Singatures";
 import { setFillMode } from "./formFillMode";
-
-export const [toggleItemEvent, setToggleItemEvent] = createSignal(false);
 
 export function formatDateForInput(date: string | undefined) {
   if (!date) return ""
@@ -28,8 +25,8 @@ export function ContratInformationsDropdowns() {
       {(toggleItem, items) => (
         <>
           <ContractInformationsFields items={items} toggleItem={toggleItem} />
-          <ReplacedFields items={items} toggleItem={toggleItem} />
-          <SubstituteFields items={items} toggleItem={toggleItem} />
+          <KineFields role="replaced" items={items} toggleItem={toggleItem} />
+          <KineFields role="substitute" items={items} toggleItem={toggleItem} />
           <Signatures items={items} toggleItem={toggleItem} />
         </>
       )}

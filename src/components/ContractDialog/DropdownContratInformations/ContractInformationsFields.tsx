@@ -1,7 +1,6 @@
 import { currentPDFTool } from "../../ContractEditor/PDFEditor";
 import { DorpdownItemType } from "../../Dropdown/DropdownWrapper";
-import { fillWithMyInformationsSubstitute, isFilledWithUserSubstitute, removeMyInformationsSubstitute } from "./SubstituteFields";
-import { fillWithMyInformationsReplaced, isFilledWithUserReplaced, removeMyInformationsReplaced } from "./ReplacedFields";
+import { fillWithMyInformationsReplaced, fillWithMyInformationsSubstitute, isFilledWithUserReplaced, isFilledWithUserSubstitute, removeMyInformationsReplaced, removeMyInformationsSubstitute } from "./KineFields";
 import { DropdownItem } from "../../Dropdown/DropdownItem";
 import { LabeledInput } from "../../inputs/LabeledInput";
 import { createSignal, onMount, Show } from "solid-js";

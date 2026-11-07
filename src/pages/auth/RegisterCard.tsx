@@ -44,7 +44,7 @@ export function RegisterCard() {
 
   return (
     <AuthWrapper setFormRef={setFormRef as Setter<HTMLFormElement>} handleSubmit={handleSubmit}>
-      <TitleForm title="Je rejoin la platform" />
+      <TitleForm title="Je rejoins la plateforme" />
 
       <div class="flex flex-col p-6 h-[450px] overflow-y-auto">
         <LabeledInput
@@ -79,13 +79,13 @@ export function RegisterCard() {
           required
         />
         <LabeledInput
-          label="Née le"
+          label="Né(e) le"
           id="birthday"
           type="date"
           required
         />
         <LabeledInput
-          label="Née à"
+          label="Né(e) à"
           id="bornLocation"
           type="text"
           required
