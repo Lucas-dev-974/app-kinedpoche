@@ -135,12 +135,10 @@ export class PDFTool {
     this.contractData[fieldName] = value;
   }
 
-  /**
-   * Récupère les données du contrat à jour depuis le store réactif
-   * @returns Une copie des données du contrat synchronisées avec le store
-   */
   getContractData(): Partial<ContractEntity> {
-    // Synchroniser contractData avec le store avant de retourner
+    // NB : pas de synchronisation ici — contractData EST la source de vérité
+    // de l'outil (les écritures passent par updateField /
+    // updateContractDataAndPDFFields).
     return this.contractData;
   }
 
