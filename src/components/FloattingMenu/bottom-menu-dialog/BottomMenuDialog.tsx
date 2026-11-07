@@ -22,7 +22,11 @@ export function BottomMenuDialog() {
   return (
     <>
       <Overlay show={isBottomMenuVisible()} onClick={() => setIsBottomMenuVisible(false)} />
-      <div class="fixed bottom-0 left-0 w-[100vw] bg-white rounded-t-lg shadow-lg transform transition-transform duration-1000 h-[85vh] max-h-[600px] z-[200]"
+      {/* Feuille bas : carte arrondie scrollable (mobile pleine largeur, desktop
+          carte centrée 560px). Slide 300ms (l'ancien 1000ms trainait) ; close
+          via croix ou fond. */}
+      <div
+        class="fixed bottom-0 left-1/2 z-[200] flex h-[85vh] max-h-[600px] w-full -translate-x-1/2 flex-col overflow-hidden rounded-t-2xl bg-white box-border shadow-[0_-12px_40px_rgba(15,23,42,0.18)] transform transition-transform duration-300 sm:w-[560px]"
         classList={{
           "translate-y-full": !isBottomMenuVisible(),
           "translate-y-0": isBottomMenuVisible(),

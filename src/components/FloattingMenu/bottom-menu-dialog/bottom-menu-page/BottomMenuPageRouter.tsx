@@ -19,10 +19,11 @@ export function BottomMenuPageRouter() {
 
 
   return (
-    <div>
+    <div class="flex min-h-0 flex-1 flex-col">
       <BottomMenuHeader />
 
-      <div class="px-2 xl:mx-40 ">
+      {/* Corps scrollable (la feuille capte une hauteur fixe : 85vh / 600px) */}
+      <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-5 pt-4">
         <BottomMenuPageBtnGroups changeCurrentDocsView={changeCurrentDocsView} currentDocsView={currentDocsView()} />
         <Switch>
           <Match when={currentDocsView() == DocsViewsEnum.contract}>

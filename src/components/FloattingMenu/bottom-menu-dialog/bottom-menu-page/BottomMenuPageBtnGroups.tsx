@@ -5,10 +5,12 @@ interface BottomMenuPageBtnGroupsProps {
     currentDocsView: DocsViewsEnum;
 }
 
+// Onglets façon segmented control. Rendu seulement s'il y a AU MOINS 2 vues :
+// un onglet seul n'a pas de raison d'être (l'en-tête porte déjà le contexte).
 export function BottomMenuPageBtnGroups(props: BottomMenuPageBtnGroupsProps) {
     const PageBtnItems = [
         {
-            title: "contrats",
+            title: "Contrats",
             action: () => props.changeCurrentDocsView(DocsViewsEnum.contract),
             id: DocsViewsEnum.contract
         },
@@ -17,18 +19,27 @@ export function BottomMenuPageBtnGroups(props: BottomMenuPageBtnGroupsProps) {
         //     action: () => props.changeCurrentDocsView(DocsViewsEnum.clientFiles),
         //     id: DocsViewsEnum.clientFiles
         // },
-    ]
+    ];
 
-    const activeStyle = "background: linear-gradient(173deg,rgba(9, 151, 115, 1) 0%, rgba(67, 182, 146, 1) 100%)";
-    const inactiveStyle = "border: linear-gradient(173deg,rgba(9, 151, 115, 1) 0%, rgba(67, 182, 146, 1) 100%) solid 1px";
+    if (PageBtnItems.length < 2) {
+        return null;
+    }
 
     return (
-        <div class="flex gap-2 justify-end  px-2">
-            {PageBtnItems.map((view) => (
-                <p class={"cursor-pointer rounded-full px-3 py-1  text-sm font-thin" + (props.currentDocsView == view.id ? " text-white" : " text-gray-500")} style={props.currentDocsView == view.id ? activeStyle : inactiveStyle} onClick={view.action}>
-                    {view.title}
-                </p>
-            ))}
+        <div class="mb-3 flex justify-end">
+            <div class="inline-flex rounded-full bg-slate-100 p-1">
+                {PageBtnItems.map((view) => (
+                    <button
+                        type="button"
+                        onClick={view.action}
+                        class={"m-0 cursor-pointer rounded-full px-4 py-1.5 font-[Nunito] text-[12.5px] font-bold duration-150 " + (props.currentDocsView == view.id
+                            ? "bg-white text-[#099773] shadow-sm"
+                            : "bg-transparent text-slate-500 hover:text-slate-700")}
+                    >
+                        {view.title}
+                    </button>
+                ))}
+            </div>
         </div>
     );
 }

@@ -7,10 +7,10 @@ interface SearchInputProps {
 
 export function SearchInput(props: SearchInputProps) {
     return (
-        <div class={`w-full mb-2 ${props.class || ""}`}>
+        <div class={`w-full mb-3 box-border ${props.class || ""}`}>
             <input
                 type="text"
-                class="rounded-full border px-4 py-2 sm:py-1 shadow-lg  sm:w-1/2 text-sm sm:text-base font-[Nunito]"
+                class="m-0 box-border w-full rounded-full border border-slate-300 bg-white px-4 py-2 font-[Nunito] text-[13.5px] text-slate-700 shadow-sm duration-150 placeholder:text-slate-400 hover:border-slate-400 focus:border-[#099773] focus:outline-none focus:ring-2 focus:ring-[#099773]/25"
                 placeholder={props.placeholder || "Recherche"}
                 value={props.value || ""}
                 onInput={(e) => props.onInput(e.currentTarget.value)}
