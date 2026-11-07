@@ -25,6 +25,11 @@ Vérification : `tsc --noEmit` **0 erreur** · `vite build` ✓ (classes vérifi
 **Environnement** : `localhost` (IPv6) ne traverse pas toujours le port-forwarding Docker sur ce poste — QA passée sur `127.0.0.1` ; CORS `http://127.0.0.1:5173` ajouté au défaut du compose racine (fichier non versionné, hors repos git).
 **Restent ⏳** : commit CI `6aa4ef1` non poussé (PAT scope workflow), « Fiches clients » (stub), « mot de passe oublié » (lien mort), remount liste contrats, CSP/HSTS nginx (différé), typos de noms de fichiers (OulinedButton, Singatures… : renommages cassables à faire en une passe dédiée).
 
+### 🩹 Correctif post-QA utilisateur — style cassé chez l'utilisateur (07/11, après-midi)
+
+Le passage à Tailwind build-time a **cassé le style dans le navigateur de l'utilisateur quotidien** : la cause n'était pas le CSS compilé (vérifié : le dev sert bien les utilitaires), mais le **service worker** — en DEV, vite sert `public/sw.js` tel quel (`self.__WB_MANIFEST` non injecté, vide) et le `createHandlerBoundToURL('/index.html')` du NavigationRoute **levait à l'évaluation** → le nouveau SW ne s'installait **jamais** → le navigateur gardait l'**ancien SW** et ses caches `pages-cache`/`assets-cache` du CDN, qui resservaient le **CSS d'avant Tailwind** dès qu'une requête bronchait (et `localhost`/IPv6 est instable vers Docker sur ce poste : fallbacks de cache fréquents). Résultat : DOM chargé, zéro style.
+**Fix** (`public/sw.js`) : NavigationRoute posé **sous garde** (seulement si `index.html` est dans le manifest — en build il l'est, en dev non) ; `self.__WB_MANIFEST` apparaît **exactement une fois** (contrainte dure de workbox injectManifest, sinon `AssertionError` au build) ; l'activation **purge les caches héritées** `pages-cache`/`assets-cache` (repeuplées à la demande, precache préservée) + `clients.claim()`. Vérifié en navigateur : SW enregistré → activé → contrôleur actif, caches propres, styles appliqués (`.flex` → flex).
+
 ---
 
 **La bibliothèque de composants réutilisables est bien découpée.** Chaque famille est décomposée en petits composants à responsabilités séparées :
