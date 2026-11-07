@@ -24,6 +24,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
         formattedBirthday = "";
     }
 
+    const btnLabel = props.isInNavbar ? "Mes infos" : "Enregistrer vos Informations";
     const title = props.isInNavbar ? "Modifier vos Informations" : "Enregistrer vos Informations";
 
     const [name, setName] = createSignal<string>(storeService.proxy.user?.fullname ?? "");
@@ -85,7 +86,7 @@ export function RegisterInformationsInLocal(props: { isInNavbar?: boolean }) {
     return (
         <DialogWrapper
             name="registerInformations"
-            btnText={title}
+            btnText={btnLabel}
             title={title}
             isInNavbar={props.isInNavbar}
         >

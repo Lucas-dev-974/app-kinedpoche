@@ -106,13 +106,12 @@ export function DialogWrapper(props: DialogWrapperProps) {
           </Match>
 
           <Match when={props.isInNavbar}>
+            {/* Pill compacte façon template V3 (à la place du texte nu long) */}
             <button
               onClick={() => setOpen(true)}
-              class={
-                "flex flex-col items-center justify-center" +
-                " font-[Nunito] text-sm  px-4 py-2 rounded-lg cursor-pointer duration-200 " +
-                " bg-transparent border-none text-white shadow-none hover:shadow-none "
-              }
+              class={" flex items-center cursor-pointer duration-200 "
+                + " rounded-[10px] border-[1.5px] border-white/50 bg-white/[0.14] px-3.5 py-2 "
+                + " font-[Nunito] text-[12.5px] font-bold text-white hover:bg-white/25 "}
             >
               {props.btnText}
             </button>
