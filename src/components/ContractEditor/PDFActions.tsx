@@ -18,11 +18,27 @@ export function PDFActions(props: PDFActionsProps) {
     }
 
 
-    return <div class="flex justify-end">
-        <div class="flex items-center">
-            <button class="bg-transparent flex items-center border-none outline-none" onClick={() => pagination(-1)} > <FaSolidChevronLeft size={16} /> </button>
-            <p class="mx-4 text-sm"> {currentPage()} sur {currentPDFTool()?.numPages ?? "-"} </p>
-            <button class="bg-transparent flex items-center border-none outline-none" onClick={() => pagination(+1)} > <FaSolidChevronRight size={16} /> </button >
+    return (
+        <div class="ml-auto inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 ring-1 ring-slate-200 shadow-sm">
+            <button
+                type="button"
+                aria-label="Page précédente"
+                class="m-0 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-slate-600 duration-150 hover:bg-slate-100"
+                onClick={() => pagination(-1)}
+            >
+                <FaSolidChevronLeft size={12} />
+            </button>
+            <p class="m-0 font-[Nunito] text-[12px] font-bold text-slate-600">
+                {currentPage()} sur {currentPDFTool()?.numPages ?? "-"}
+            </p>
+            <button
+                type="button"
+                aria-label="Page suivante"
+                class="m-0 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-slate-600 duration-150 hover:bg-slate-100"
+                onClick={() => pagination(+1)}
+            >
+                <FaSolidChevronRight size={12} />
+            </button>
         </div>
-    </div>
+    )
 }

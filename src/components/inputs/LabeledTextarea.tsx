@@ -1,4 +1,4 @@
-import "./LabeledTextarea.css";
+import { LABELED_INPUT_PRO } from "./LabeledInput";
 
 export interface TextareaProps {
     onInput: (value: string) => void
@@ -12,14 +12,17 @@ interface LabeledTextareaProps extends TextareaProps {
     style?: "form";
     required?: boolean;
     rows?: number;
+    /** Look "pro" des dialogs : mêmes tokens que LabeledInput variant pro. */
+    variant?: "pro";
 }
 
 export function LabeledTextarea(props: LabeledTextareaProps) {
+    const isPro = props.variant === "pro";
     return (
         <div class="grid grid-cols-1">
-            <label class="font-[Nunito]" for={props.id}>{props.label}</label>
+            <label class={"font-[Nunito] " + (isPro ? LABELED_INPUT_PRO.label : "")} for={props.id}>{props.label}</label>
             <textarea
-                class="font-[Nunito] mt-1 block w-full  py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none resize-none"
+                class={"font-[Nunito] mt-1 block w-full py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none resize-none " + (isPro ? LABELED_INPUT_PRO.input : "")}
                 id={props.id}
                 name={props.id}
                 placeholder={props.placeholder ? props.placeholder : ""}

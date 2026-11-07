@@ -1,13 +1,11 @@
-import { createSignal, Setter } from "solid-js"
+import { createSignal, Setter, onMount } from "solid-js"
 import { mailService } from "../../../services/mail.service"
-import { Button } from "../../buttons/Button"
 import { currentPDFTool } from "../../ContractEditor/PDFEditor"
 import { LabeledInput } from "../../inputs/LabeledInput"
 import { NotificationService } from "../../../utils/notification.service"
 import { LabeledTextarea } from "../../inputs/LabeledTextarea"
 import storeService from "../../../utils/store.service"
 import { ContractEntity } from "../../../models/contract.entity"
-
 
 export type ResponseTypeSendContractTo = {
     message?: string;
@@ -17,14 +15,31 @@ export type ResponseTypeSendContractTo = {
     }
 }
 
-export function SendContractTo(props: {
+interface SendContractToProps {
     setOpen: Setter<boolean>
-}) {
-    const [mailFrom, setMailFrom] = createSignal("")
+    /** API remontante : expose le submit et l'état d'envoi au footer du
+        dialog (le bouton vit hors du body scrollable). Optionnel pour les
+        usages autonomes (le bouton interne a été retiré — footer seul). */
+    bindApi?: {
+        submit: (fn: (e?: Event) => Promise<void>) => void
+        setLoading: (value: boolean) => void
+    }
+}
+
+export function SendContractTo(props: SendContractToProps) {
+    const [mailFrom, setMailFrom] = createSignal(storeService.data.user?.email ?? "")
     const [mailTo, setMailTo] = createSignal("")
     const [mailBody, setMailBody] = createSignal("")
 
-    const [isLoading, setIsLoading] = createSignal(false)
+    // Le bouton d'envoi vit dans le footer du dialog : on remonte le handler
+    // et l'état d'envoi au parent (mode footer actif uniquement).
+    onMount(() => {
+        props.bindApi?.submit(handleSubmit)
+    })
+
+    function setLoadingState(value: boolean) {
+        props.bindApi?.setLoading(value)
+    }
 
     // Validation des emails
     const validateEmail = (email: string): boolean => {
@@ -83,7 +98,7 @@ export function SendContractTo(props: {
             return
         }
 
-        setIsLoading(true)
+        setLoadingState(true)
         try {
             // Flux direct (audit propreté 07/11 P5) : l'ancienne chaîne passait
             // par le signal global toSendBlob surveillé par un createEffect —
@@ -122,7 +137,7 @@ export function SendContractTo(props: {
                 type: "error"
             })
         } finally {
-            setIsLoading(false)
+            setLoadingState(false)
         }
     }
 
@@ -138,21 +153,15 @@ export function SendContractTo(props: {
     }
 
     return (
-        <div class="space-y-6">
-            {/* Titre de la section */}
-            <div class="text-center">
-                <h3 class="text-base sm:text-lg font-medium text-gray-900">Envoyer le contrat par email</h3>
-                <p class="text-xs sm:text-sm text-gray-600">Remplissez les informations ci-dessous pour envoyer le contrat signé</p>
-            </div>
-
-            {/* Formulaire */}
-            <div class=" flex flex-col gap-2">
+        <div class="space-y-3.5">
+            <div class="grid gap-x-4 gap-y-3.5 sm:grid-cols-2">
                 <LabeledInput
                     id="mailFrom"
                     label="Votre email"
                     type="email"
                     value={mailFrom()}
                     onInput={(e) => { setMailFrom(e.target.value) }}
+                    variant="pro"
                 />
 
                 <LabeledInput
@@ -161,24 +170,19 @@ export function SendContractTo(props: {
                     type="email"
                     value={mailTo()}
                     onInput={(e) => { setMailTo(e.target.value) }}
-                />
-
-                <LabeledTextarea
-                    id="mailBody"
-                    label="Corps de l'email"
-                    value={mailBody()}
-                    onInput={(value) => { setMailBody(value) }}
+                    variant="pro"
                 />
             </div>
 
-            <div class="flex justify-center pt-4">
-                <Button
-                    text={isLoading() ? "Envoi en cours..." : "Envoyer le contrat"}
-                    onClick={() => handleSubmit()}
-                    disabled={isLoading()}
-                    class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-            </div>
+            <LabeledTextarea
+                id="mailBody"
+                label="Message (optionnel)"
+                placeholder="Petit message d'accompagnement pour le confrère…"
+                value={mailBody()}
+                onInput={(value) => { setMailBody(value) }}
+                rows={4}
+                variant="pro"
+            />
         </div>
     )
 }
