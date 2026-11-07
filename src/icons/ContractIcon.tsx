@@ -1,17 +1,36 @@
 interface ContractIconProps {
+    /** Taille en px (défaut 24). Le glyphe est basé sur un viewBox 24. */
     size?: number;
+    class?: string;
 }
 
+// Icône « contrat » en trait (outline) : feuille, lignes de texte et paraphe.
+// Cohérente avec le langage outline du reste de l'app (HiOutline*, Fi*) —
+// remplace le glyphe rempli "document médical" (file-medical) qui disait
+// dossier de santé au lieu de contrat de collaboration.
 export function ContractIcon(props: ContractIconProps) {
-    return <svg
-        fill="white"
-        stroke-width="0"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 384 512"
-        height={props.size ? props.size + "em" : "1em"}
-        width={props.size ? props.size + "em" : "1em"}
-        style="overflow: visible; ">
-        <path d="M64 0C28.7 0 0 28.7 0 64v384c0 35.3 28.7 64 64 64h256c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zm192 0v128h128L256 0zM80 64h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64h64c8.8 0 16 7.2 16 16s-7.2 16-16 16H80c-8.8 0-16-7.2-16-16s7.2-16 16-16zm54.2 253.8c-6.1 20.3-24.8 34.2-46 34.2H80c-8.8 0-16-7.2-16-16s7.2-16 16-16h8.2c7.1 0 13.3-4.6 15.3-11.4l14.9-49.5c3.4-11.3 13.8-19.1 25.6-19.1s22.2 7.7 25.6 19.1l11.6 38.6c7.4-6.2 16.8-9.7 26.8-9.7 15.9 0 30.4 9 37.5 23.2l4.4 8.8H304c8.8 0 16 7.2 16 16s-7.2 16-16 16h-64c-6.1 0-11.6-3.4-14.3-8.8l-8.8-17.7c-1.7-3.4-5.1-5.5-8.8-5.5s-7.2 2.1-8.8 5.5l-8.8 17.7c-2.9 5.9-9.2 9.4-15.7 8.8s-12.1-5.1-13.9-11.3L144 349l-9.8 32.8z">
-        </path>
-    </svg>
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            width={props.size ? props.size : 24}
+            height={props.size ? props.size : 24}
+            class={props.class}
+            aria-hidden="true"
+        >
+            {/* Feuille avec coin plié */}
+            <path d="M6 2.75h7.5L19 8.25v10.5a2.5 2.5 0 0 1-2.5 2.5h-10.5A2.5 2.5 0 0 1 3.5 18.75V5.25A2.5 2.5 0 0 1 6 2.75Z" />
+            <path d="M13.25 3v5h5.5" />
+            {/* Lignes de texte */}
+            <path d="M7.25 11.5h6.5" />
+            <path d="M7.25 14.5h6.5" />
+            {/* Paraphe (signature) */}
+            <path d="M7.25 17.75c.9-1.5 2.2-1.9 3-.9.7.9 1.9.7 3-.7" />
+        </svg>
+    );
 }
